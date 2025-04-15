@@ -25,6 +25,7 @@ jobs:
       - shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ vars.DOCKER_USERNAME }}
         run: |
           printenv
       - name: Log in to Docker Hub
