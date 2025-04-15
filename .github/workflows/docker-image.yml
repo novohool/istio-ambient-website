@@ -34,8 +34,6 @@ jobs:
         with:
           username: $username
           password: ${{ secrets.DOCKER_PASSWORD }}
-        env:
-          username: ${{ vars.DOCKER_USERNAME }}
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
