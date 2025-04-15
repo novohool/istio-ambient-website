@@ -29,6 +29,7 @@ jobs:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           environment: dockerhub
         run: |
+          printenv
           echo  "$DOCKER_USERNAME","$environment"
 
       - name: Log in to Docker Hub
