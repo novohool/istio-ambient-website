@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>故障排除 - Istio Ambient指南</title>
+  <!-- 关键CSS内联 -->
+  <style>
+    /* 关键渲染路径CSS */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: #2d3748;
+      background-color: #f8f9fa;
+    }
+    .container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 15px;
+    }
+    header {
+      background-color: #2c5282;
+      color: white;
+      padding: 1rem 0;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: white;
+      text-decoration: none;
+    }
+    .nav-links {
+      display: flex;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .nav-links li {
+      margin-left: 1.5rem;
+    }
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+    .nav-links a:hover, .nav-links a.active {
+      color: #90cdf4;
+    }
+    
+    /* 骨架屏基本样式 - 内联关键部分 */
+    .skeleton-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #f8f9fa;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      transition: opacity 0.3s ease-out;
+    }
+    .skeleton-header {
+      height: 60px;
+      background-color: #2c5282;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .skeleton-nav {
+      display: flex;
+      padding: 15px 5%;
+    }
+    .skeleton-logo {
+      width: 180px;
+      height: 30px;
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+    .skeleton-menu {
+      display: flex;
+      margin-left: auto;
+    }
+    .skeleton-menu-item {
+      width: 80px;
+      height: 30px;
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      margin-left: 15px;
+    }
+    body.loading {
+      overflow: hidden;
+    }
+    body.loading .page-content {
+      opacity: 0;
+    }
+    @keyframes pulse {
+      0% { opacity: 0.6; }
+      50% { opacity: 0.8; }
+      100% { opacity: 0.6; }
+    }
+    .skeleton-logo, .skeleton-menu-item {
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+  </style>
+  
+  <!-- 预加载骨架屏CSS -->
+  <link rel="preload" href="../css/skeleton.css" as="style">
+  <link rel="stylesheet" href="../css/skeleton.css">
+  
+  <!-- 预加载CSS文件 -->
+  <link rel="preload" href="../css/styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="../css/svg-styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="../css/responsive.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  
+  <!-- 回退方案 -->
+  <noscript>
+    <link rel="stylesheet" href="../css/skeleton.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/svg-styles.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+  </noscript>
+  
+  <!-- 预加载关键JS文件 -->
+  <link rel="preload" href="../js/main.js" as="script">
+</head>
+<body class="loading">
+  <!-- 骨架屏 -->
+  <div class="skeleton-screen" id="skeleton-screen">
+    <div class="skeleton-header">
+      <div class="skeleton-nav">
+        <div class="skeleton-logo"></div>
+        <div class="skeleton-menu">
+          <div class="skeleton-menu-item"></div>
+          <div class="skeleton-menu-item"></div>
+          <div class="skeleton-menu-item"></div>
+          <div class="skeleton-menu-item"></div>
+          <div class="skeleton-menu-item"></div>
+        </div>
+      </div>
+    </div>
+    <div class="skeleton-content">
+      <div class="skeleton-sidebar"></div>
+      <div class="skeleton-main">
+        <div class="skeleton-title"></div>
+        <div class="skeleton-text"></div>
+        <div class="skeleton-text short"></div>
+        <div class="skeleton-image"></div>
+        
+        <div class="skeleton-subtitle"></div>
+        <div class="skeleton-text"></div>
+        <div class="skeleton-text short"></div>
+        <div class="skeleton-code"></div>
+        
+        <div class="skeleton-subtitle"></div>
+        <div class="skeleton-text"></div>
+        <div class="skeleton-text"></div>
+        <div class="skeleton-table"></div>
+      </div>
+    </div>
+    <div class="skeleton-footer"></div>
+  </div>
+
+  <!-- 页面实际内容 -->
+  <div class="page-content">
+    <header>
+      <div class="container">
+        <nav class="navbar">
+          <a href="index.html" class="logo">Istio Ambient指南</a>
+          <div class="menu-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <ul class="nav-links">
+            <li><a href="index.html">首页</a></li>
+            <li><a href="basic-concepts.html">基础概念</a></li>
+            <li><a href="architecture-comparison.html">架构对比</a></li>
+            <li><a href="waypoint-proxy.html">Waypoint代理</a></li>
+            <li><a href="practical-guide.html">实践指南</a></li>
+            <li><a href="troubleshooting.html" class="active">故障排除</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <aside class="sidebar">
+        <h2>目录</h2>
+        <ul class="sidebar-nav">
+          <li><a href="#common-issues" class="active">常见问题</a></li>
+          <li><a href="#installation-issues">安装问题</a></li>
+          <li><a href="#connectivity-issues">连接问题</a></li>
+          <li><a href="#waypoint-issues">Waypoint问题</a></li>
+          <li><a href="#security-issues">安全问题</a></li>
+          <li><a href="#performance-issues">性能问题</a></li>
+          <li><a href="#diagnostic-tools">诊断工具</a></li>
+          <li><a href="#logs-analysis">日志分析</a></li>
+          <li><a href="#faq">常见问答</a></li>
+        </ul>
+      </aside>
+
+      <section class="content">
+        <div class="content-header">
+          <h1>Istio Ambient模式故障排除</h1>
+        </div>
+
+        <div class="content-section" id="common-issues">
+          <h2>常见问题</h2>
+          <p>在使用Istio Ambient模式时，您可能会遇到各种问题。本页面汇总了常见问题及其解决方案，帮助您快速诊断和修复问题。</p>
+
+          <div class="svg-container">
+            <img src="../images/troubleshooting-workflow.svg" alt="Ambient模式故障排除工作流程" class="diagram">
+            <p class="diagram-title">图1: Ambient模式故障排除工作流程</p>
+          </div>
+
+          <h3>故障排除方法论</h3>
+          <p>在解决Ambient模式问题时，建议遵循以下方法论：</p>
+          
+          <ol>
+            <li><strong>收集信息</strong>：确定问题的具体表现和范围</li>
+            <li><strong>检查组件状态</strong>：验证所有Ambient组件是否正常运行</li>
+            <li><strong>查看日志</strong>：检查相关组件的日志以获取错误信息</li>
+            <li><strong>使用诊断工具</strong>：使用Istio提供的诊断工具分析问题</li>
+            <li><strong>尝试解决方案</strong>：应用推荐的解决方案</li>
+            <li><strong>验证修复</strong>：确认问题是否已解决</li>
+          </ol>
+          
+          <p>下面我们将按照不同类别详细介绍常见问题及其解决方案。</p>
+          
+          <div class="content-section" id="diagnostic-tools">
+            <h2>诊断工具</h2>
+            
+            <p>Istio提供了多种诊断工具，帮助您排查Ambient模式问题。</p>
+            
+            <div class="svg-container">
+              <img src="../images/diagnostic-tools.svg" alt="诊断工具概览" class="diagram">
+              <p class="diagram-title">图2: Ambient模式诊断工具概览</p>
+            </div>
+          
+            <h3>istioctl</h3>
+            
+            <p>istioctl是Istio的命令行工具，提供了多种诊断功能：</p>
+          
+          <ol>
+            <li><strong>收集信息</strong>：确定问题的具体表现和范围</li>
+            <li><strong>检查组件状态</strong>：验证所有Ambient组件是否正常运行</li>
+            <li><strong>查看日志</strong>：检查相关组件的日志以获取错误信息</li>
+            <li><strong>使用诊断工具</strong>：使用Istio提供的诊断工具分析问题</li>
+            <li><strong>尝试解决方案</strong>：应用推荐的解决方案</li>
+            <li><strong>验证修复</strong>：确认问题是否已解决</li>
+          </ol>
+          
+          <p>下面我们将按照不同类别详细介绍常见问题及其解决方案。</p>
+        </div>
+
+        <div class="content-section" id="installation-issues">
+          <h2>安装问题</h2>
+          
+          <h3>问题：安装Ambient模式失败</h3>
+          
+          <p><strong>症状</strong>：使用istioctl安装Ambient模式时出错。</p>
+          
+          <p><strong>可能原因</strong>：</p>
+          <ul>
+            <li>Kubernetes版本不兼容</li>
+            <li>CNI插件不兼容</li>
+            <li>资源不足</li>
+            <li>权限问题</li>
+          </ul>
+          
+          <p><strong>解决方案</strong>：</p>
+          
+          <ol>
+            <li>确认Kubernetes版本是否为1.24或更高版本：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 检查Kubernetes版本
+kubectl version --short</code></pre>
+          
+          <ol start="2">
+            <li>检查安装日志以获取详细错误信息：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 使用--log-level=debug重新安装
+istioctl install --set profile=ambient --log-level=debug</code></pre>
+          
+          <ol start="3">
+            <li>确认集群资源是否充足：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 检查节点资源
+kubectl describe nodes</code></pre>
+          
+          <ol start="4">
+            <li>检查权限问题：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 确认istioctl使用的服务账号有足够权限
+kubectl auth can-i create namespace --as=system:serviceaccount:istio-system:istiod</code></pre>
+          
+          <h3>问题：ztunnel DaemonSet未在所有节点上运行</h3>
+          
+          <p><strong>症状</strong>：ztunnel Pod未在某些节点上运行。</p>
+          
+          <p><strong>可能原因</strong>：</p>
+          <ul>
+            <li>节点污点（taints）阻止了ztunnel Pod的调度</li>
+            <li>节点资源不足</li>
+            <li>节点不满足ztunnel的节点选择器要求</li>
+          </ul>
+          
+          <p><strong>解决方案</strong>：</p>
+          
+          <ol>
+            <li>检查节点污点：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 检查节点污点
+kubectl get nodes -o custom-columns=NAME:.metadata.name,TAINTS:.spec.taints</code></pre>
+          
+          <ol start="2">
+            <li>检查ztunnel DaemonSet的容忍度（tolerations）：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 检查ztunnel DaemonSet的容忍度
+kubectl get daemonset -n istio-system ztunnel -o jsonpath='{.spec.template.spec.tolerations}'</code></pre>
+          
+          <ol start="3">
+            <li>如果需要，修改ztunnel DaemonSet以添加必要的容忍度：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 编辑ztunnel DaemonSet
+kubectl edit daemonset -n istio-system ztunnel</code></pre>
+        </div>
+
+        <div class="content-section" id="connectivity-issues">
+          <h2>连接问题</h2>
+          
+          <h3>问题：服务无法相互通信</h3>
+          
+          <p><strong>症状</strong>：在Ambient模式下，服务之间无法通信。</p>
+          
+          <p><strong>可能原因</strong>：</p>
+          <ul>
+            <li>命名空间未正确标记为Ambient模式</li>
+            <li>ztunnel组件未正常运行</li>
+            <li>服务定义问题</li>
+            <li>网络策略阻止了流量</li>
+          </ul>
+          
+          <p><strong>解决方案</strong>：</p>
+          
+          <ol>
+            <li>确认命名空间已正确标记为Ambient模式：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 检查命名空间标签
+kubectl get namespace your-namespace --show-labels</code></pre>
+          
+          <p>确保命名空间有标签 <code>istio.io/dataplane-mode=ambient</code>。如果没有，添加它：</p>
+          
+          <pre><code class="language-bash"># 添加Ambient标签
+kubectl label namespace your-namespace istio.io/dataplane-mode=ambient</code></pre>
+          
+          <ol start="2">
+            <li>检查ztunnel组件状态：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 检查ztunnel Pod状态
+kubectl get pods -n istio-system -l app=ztunnel</code></pre>
+          
+          <ol start="3">
+            <li>验证服务定义：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 检查服务定义
+kubectl get service your-service -n your-namespace -o yaml</code></pre>
+          
+          <ol start="4">
+            <li>检查网络策略：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 检查网络策略
+kubectl get networkpolicy -n your-namespace</code></pre>
+          
+          <h3>问题：mTLS连接失败</h3>
+          
+          <p><strong>症状</strong>：服务之间的mTLS连接失败。</p>
+          
+          <p><strong>可能原因</strong>：</p>
+          <ul>
+            <li>证书问题</li>
+            <li>PeerAuthentication配置错误</li>
+            <li>istiod与ztunnel之间的通信问题</li>
+          </ul>
+          
+          <p><strong>解决方案</strong>：</p>
+          
+          <ol>
+            <li>检查PeerAuthentication策略：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 检查PeerAuthentication策略
+kubectl get peerauthentication -A</code></pre>
+          
+          <ol start="2">
+            <li>检查istiod日志中的证书相关错误：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 检查istiod日志
+kubectl logs -n istio-system -l app=istiod | grep -i cert</code></pre>
+          
+          <ol start="3">
+            <li>检查ztunnel日志中的mTLS相关错误：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 检查ztunnel日志
+kubectl logs -n istio-system -l app=ztunnel | grep -i mtls</code></pre>
+          
+          <ol start="4">
+            <li>验证证书是否正确分发：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 检查证书密钥
+kubectl get secret -n istio-system -l istio.io/key-and-cert</code></pre>
+        </div>
+
+        <div class="content-section" id="waypoint-issues">
+          <h2>Waypoint问题</h2>
+          
+          <h3>问题：Waypoint代理未创建</h3>
+          
+          <p><strong>症状</strong>：创建Gateway资源后，Waypoint代理Pod未创建。</p>
+          
+          <p><strong>可能原因</strong>：</p>
+          <ul>
+            <li>Gateway资源配置错误</li>
+            <li>gatewayClassName不正确</li>
+            <li>服务账号注解缺失或错误</li>
+            <li>istiod未正确处理Gateway资源</li>
+          </ul>
+          
+          <p><strong>解决方案</strong>：</p>
+          
+          <ol>
+            <li>检查Gateway资源配置：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 检查Gateway资源
+kubectl get gateway -n your-namespace your-waypoint -o yaml</code></pre>
+          
+          <p>确保以下配置正确：</p>
+          <ul>
+            <li>gatewayClassName: istio-waypoint</li>
+            <li>annotations中包含istio.io/service-account: your-service-account</li>
+            <li>listeners配置正确，包含port: 15008和protocol: HBONE</li>
+          </ul>
+          
+          <ol start="2">
+            <li>检查istiod日志中的Gateway处理错误：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 检查istiod日志
+kubectl logs -n istio-system -l app=istiod | grep -i gateway</code></pre>
+          
+          <ol start="3">
+            <li>确认服务账号存在：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 检查服务账号
+kubectl get serviceaccount -n your-namespace your-service-account</code></pre>
+          
+          <h3>问题：Waypoint代理创建但不工作</h3>
+          
+          <p><strong>症状</strong>：Waypoint代理Pod已创建，但L7功能不工作。</p>
+          
+          <p><strong>可能原因</strong>：</p>
+          <ul>
+            <li>Waypoint代理配置错误</li>
+            <li>VirtualService或DestinationRule配置问题</li>
+            <li>ztunnel未将流量转发到Waypoint</li>
+            <li>Waypoint代理健康检查失败</li>
+          </ul>
+          
+          <p><strong>解决方案</strong>：</p>
+          
+          <ol>
+            <li>检查Waypoint代理Pod状态：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 检查Waypoint代理Pod
+kubectl get pods -n your-namespace -l istio.io/gateway-name=your-waypoint</code></pre>
+          
+          <ol start="2">
+            <li>检查Waypoint代理日志：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 检查Waypoint代理日志
+kubectl logs -n your-namespace -l istio.io/gateway-name=your-waypoint -c istio-proxy</code></pre>
+          
+          <ol start="3">
+            <li>检查VirtualService配置：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 检查VirtualService
+kubectl get virtualservice -n your-namespace -o yaml</code></pre>
+          
+          <ol start="4">
+            <li>使用istioctl分析配置：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 使用istioctl分析
+istioctl analyze -n your-namespace</code></pre>
+        </div>
+
+        <div class="content-section" id="security-issues">
+          <h2>安全问题</h2>
+          
+          <h3>问题：授权策略不生效</h3>
+          
+          <p><strong>症状</strong>：配置的AuthorizationPolicy不生效，无法限制访问。</p>
+          
+          <p><strong>可能原因</strong>：</p>
+          <ul>
+            <li>授权策略配置错误</li>
+            <li>选择器不匹配目标服务</li>
+            <li>Waypoint代理未配置或不工作</li>
+            <li>请求未通过Waypoint代理</li>
+          </ul>
+          
+          <p><strong>解决方案</strong>：</p>
+          
+          <ol>
+            <li>检查授权策略配置：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 检查授权策略
+kubectl get authorizationpolicy -n your-namespace -o yaml</code></pre>
+          
+          <ol start="2">
+            <li>确认Waypoint代理已配置并正常工作：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 检查Waypoint代理
+kubectl get pods -n your-namespace -l istio.io/gateway-name=your-waypoint</code></pre>
+          
+          <ol start="3">
+            <li>检查Waypoint代理日志中的授权决策：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 检查Waypoint代理日志
+kubectl logs -n your-namespace -l istio.io/gateway-name=your-waypoint -c istio-proxy | grep -i auth</code></pre>
+          
+          <ol start="4">
+            <li>使用istioctl分析授权策略：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 使用istioctl分析
+istioctl analyze -n your-namespace --all-namespaces</code></pre>
+          
+          <h3>问题：证书轮换失败</h3>
+          
+          <p><strong>症状</strong>：证书过期或轮换失败，导致mTLS连接问题。</p>
+          
+          <p><strong>可能原因</strong>：</p>
+          <ul>
+            <li>istiod与ztunnel之间的通信问题</li>
+            <li>证书签发问题</li>
+            <li>证书存储问题</li>
+          </ul>
+          
+          <p><strong>解决方案</strong>：</p>
+          
+          <ol>
+            <li>检查istiod日志中的证书相关错误：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 检查istiod日志
+kubectl logs -n istio-system -l app=istiod | grep -i cert</code></pre>
+          
+          <ol start="2">
+            <li>检查ztunnel日志中的证书相关错误：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 检查ztunnel日志
+kubectl logs -n istio-system -l app=ztunnel | grep -i cert</code></pre>
+          
+          <ol start="3">
+            <li>重启istiod以触发证书重新签发：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 重启istiod
+kubectl rollout restart deployment -n istio-system istiod</code></pre>
+        </div>
+
+        <div class="content-section" id="performance-issues">
+          <h2>性能问题</h2>
+          
+          <h3>问题：高延迟</h3>
+          
+          <p><strong>症状</strong>：在Ambient模式下，服务间通信延迟明显增加。</p>
+          
+          <p><strong>可能原因</strong>：</p>
+          <ul>
+            <li>ztunnel资源不足</li>
+            <li>Waypoint代理资源不足</li>
+            <li>不必要的L7处理</li>
+            <li>网络拥塞</li>
+          </ul>
+          
+          <p><strong>解决方案</strong>：</p>
+          
+          <ol>
+            <li>检查ztunnel资源使用情况：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 检查ztunnel资源使用
+kubectl top pods -n istio-system -l app=ztunnel</code></pre>
+          
+          <ol start="2">
+            <li>检查Waypoint代理资源使用情况：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 检查Waypoint代理资源使用
+kubectl top pods -n your-namespace -l istio.io/gateway-name=your-waypoint</code></pre>
+          
+          <ol start="3">
+            <li>优化资源配置：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 增加ztunnel资源
+kubectl edit daemonset -n istio-system ztunnel</code></pre>
+          
+          <p>修改resources部分，增加CPU和内存限制。</p>
+          
+          <ol start="4">
+            <li>检查是否所有服务都需要Waypoint代理：</li>
+          </ol>
+          
+          <p>只为需要L7功能的服务配置Waypoint代理，其他服务可以只使用ztunnel的L4功能。</p>
+          
+          <h3>问题：资源消耗高</h3>
+          
+          <p><strong>症状</strong>：Ambient模式组件消耗过多资源。</p>
+          
+          <p><strong>可能原因</strong>：</p>
+          <ul>
+            <li>配置不当</li>
+            <li>流量过大</li>
+            <li>日志级别过高</li>
+            <li>内存泄漏</li>
+          </ul>
+          
+          <p><strong>解决方案</strong>：</p>
+          
+          <ol>
+            <li>调整日志级别：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 调整istiod日志级别
+kubectl edit deployment -n istio-system istiod</code></pre>
+          
+          <p>修改--log_output_level参数，设置为default:info。</p>
+          
+          <ol start="2">
+            <li>优化Waypoint代理部署：</li>
+          </ol>
+          
+          <p>考虑使用命名空间级别的Waypoint代理而不是为每个服务部署单独的Waypoint代理。</p>
+          
+          <ol start="3">
+            <li>监控资源使用趋势：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 安装metrics-server（如果尚未安装）
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
+# 监控资源使用
+kubectl top pods -n istio-system --sort-by=cpu</code></pre>
+        </div>
+
+        <div class="content-section" id="diagnostic-tools">
+          <h2>诊断工具</h2>
+          
+          <p>Istio提供了多种诊断工具，帮助您排查Ambient模式问题。</p>
+          
+          <div class="svg-container">
+            <img src="../images/diagnostic-tools.svg" alt="诊断工具概览图" class="diagram">
+            <p class="diagram-title">图2: Ambient模式诊断工具概览</p>
+          </div>
+          
+          <h3>istioctl</h3>
+          
+          <p>istioctl是Istio的命令行工具，提供了多种诊断功能：</p>
+          
+          <table>
+            <thead>
+              <tr>
+                <th>命令</th>
+                <th>功能</th>
+                <th>用途</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>istioctl ps</td>
+                <td>查看代理状态</td>
+                <td>显示网格中的工作负载及其代理状态</td>
+              </tr>
+              <tr>
+                <td>istioctl analyze</td>
+                <td>配置分析</td>
+                <td>分析Istio配置并报告潜在问题</td>
+              </tr>
+              <tr>
+                <td>istioctl proxy-status</td>
+                <td>代理同步状态</td>
+                <td>显示Envoy代理的同步状态</td>
+              </tr>
+              <tr>
+                <td>istioctl proxy-config</td>
+                <td>代理配置查看</td>
+                <td>查看Envoy代理的配置</td>
+              </tr>
+              <tr>
+                <td>istioctl x describe</td>
+                <td>资源描述</td>
+                <td>描述服务、Pod或工作负载的Istio配置</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <h3>使用示例</h3>
+          
+          <p>以下是一些常用诊断命令的示例：</p>
+          
+          <pre><code class="language-bash"># 查看网格中的工作负载
+istioctl ps
+
+# 分析配置问题
+istioctl analyze -n your-namespace
+
+# 描述服务
+istioctl x describe service your-service.your-namespace
+
+# 查看Waypoint代理配置
+istioctl proxy-config all -n your-namespace $(kubectl get pod -n your-namespace \
+-l istio.io/gateway-name=your-waypoint -o jsonpath='{.items[0].metadata.name}')
+
+# 检查ztunnel状态
+istioctl proxy-status -n istio-system $(kubectl get pod -n istio-system -l app=ztunnel \
+-o jsonpath='{.items[0].metadata.name}')</code></pre>
+          
+          <h3>Kiali</h3>
+          
+          <p>Kiali是Istio的可视化工具，可以帮助您了解服务网格的结构和健康状态：</p>
+          
+          <pre><code class="language-bash"># 安装Kiali
+kubectl apply -f samples/addons/kiali.yaml
+
+# 访问Kiali UI
+kubectl port-forward svc/kiali -n istio-system 20001:20001</code></pre>
+          
+          <p>然后在浏览器中访问http://localhost:20001。</p>
+          
+          <h3>Prometheus和Grafana</h3>
+          
+          <p>使用Prometheus和Grafana监控Ambient模式组件的性能：</p>
+          
+          <pre><code class="language-bash"># 安装Prometheus和Grafana
+kubectl apply -f samples/addons/prometheus.yaml
+kubectl apply -f samples/addons/grafana.yaml
+
+# 访问Grafana
+kubectl port-forward svc/grafana -n istio-system 3000:3000</code></pre>
+          
+          <p>然后在浏览器中访问http://localhost:3000，使用默认凭据（admin/admin）登录。</p>
+        </div>
+
+        <div class="content-section" id="logs-analysis">
+          <h2>日志分析</h2>
+          
+          <p>日志是排查Ambient模式问题的重要信息来源。以下是关键组件的日志分析方法。</p>
+          
+          <h3>istiod日志</h3>
+          
+          <p>istiod是Istio控制平面，其日志包含配置分发、证书管理等信息：</p>
+          
+          <pre><code class="language-bash"># 查看istiod日志
+kubectl logs -n istio-system -l app=istiod
+
+# 查看特定类型的日志
+kubectl logs -n istio-system -l app=istiod | grep -i error
+kubectl logs -n istio-system -l app=istiod | grep -i cert
+kubectl logs -n istio-system -l app=istiod | grep -i webhook</code></pre>
+          
+          <h3>ztunnel日志</h3>
+          
+          <p>ztunnel是Ambient模式的核心数据平面组件，其日志包含流量处理、mTLS等信息：</p>
+          
+          <pre><code class="language-bash"># 查看特定节点上的ztunnel日志
+kubectl logs -n istio-system $(kubectl get pod -n istio-system \
+-l app=ztunnel -o jsonpath='{.items[0].metadata.name}')
+
+# 查看所有ztunnel的错误日志
+kubectl logs -n istio-system -l app=ztunnel | grep -i error
+
+# 查看mTLS相关日志
+kubectl logs -n istio-system -l app=ztunnel | grep -i mtls</code></pre>
+          
+          <h3>Waypoint代理日志</h3>
+          
+          <p>Waypoint代理处理L7流量，其日志包含路由、授权等信息：</p>
+          
+          <pre><code class="language-bash"># 查看Waypoint代理日志
+kubectl logs -n your-namespace -l istio.io/gateway-name=your-waypoint -c istio-proxy
+
+# 查看授权决策日志
+kubectl logs -n your-namespace -l istio.io/gateway-name=your-waypoint -c istio-proxy | grep -i rbac
+
+# 查看路由相关日志
+kubectl logs -n your-namespace -l istio.io/gateway-name=your-waypoint -c istio-proxy | grep -i route</code></pre>
+          
+          <h3>增加日志详细程度</h3>
+          
+          <p>在排查复杂问题时，可能需要增加日志详细程度：</p>
+          
+          <pre><code class="language-bash"># 增加istiod日志级别
+kubectl edit deployment -n istio-system istiod</code></pre>
+          
+          <p>修改--log_output_level参数，例如设置为default:debug。</p>
+          
+          <pre><code class="language-bash"># 增加ztunnel日志级别
+kubectl edit daemonset -n istio-system ztunnel</code></pre>
+          
+          <p>修改环境变量RUST_LOG，例如设置为info,ztunnel=debug。</p>
+          
+          <pre><code class="language-bash"># 增加Waypoint代理日志级别
+kubectl exec -it -n your-namespace $(kubectl get pod -n your-namespace \
+-l istio.io/gateway-name=your-waypoint -o jsonpath='{.items[0].metadata.name}') -c istio-proxy \
+-- curl -X POST localhost:15000/logging?level=debug</code></pre>
+        </div>
+
+        <div class="content-section" id="faq">
+          <h2>常见问答</h2>
+          
+          <h3>Q: Ambient模式与Sidecar模式可以共存吗？</h3>
+          
+          <p>A: 是的，Istio支持在同一集群中同时运行Ambient模式和Sidecar模式。不同命名空间可以使用不同的模式，但同一命名空间内建议使用相同的模式。</p>
+          
+          <h3>Q: 如何确定服务是否需要Waypoint代理？</h3>
+          
+          <p>A: 如果服务需要以下功能，应该配置Waypoint代理：</p>
+          <ul>
+            <li>高级路由（基于HTTP头、URI等）</li>
+            <li>细粒度授权策略</li>
+            <li>故障注入</li>
+            <li>流量分割（用于金丝雀发布等）</li>
+          </ul>
+          <p>如果服务只需要mTLS和基本连接，可以只使用ztunnel而不配置Waypoint代理。</p>
+          
+          <h3>Q: Ambient模式支持WebAssembly扩展吗？</h3>
+          
+          <p>A: 目前Ambient模式对WebAssembly扩展的支持有限。在Waypoint代理中可以使用部分WebAssembly扩展，但功能可能受限。随着Ambient模式的发展，WebAssembly支持将会增强。</p>
+          
+          <h3>Q: 如何监控Ambient模式的性能？</h3>
+          
+          <p>A: 可以使用以下方法监控Ambient模式性能：</p>
+          <ul>
+            <li>使用Prometheus和Grafana监控ztunnel和Waypoint代理的指标</li>
+            <li>使用kubectl top命令监控资源使用情况</li>
+            <li>使用Kiali查看服务网格的健康状态和性能</li>
+            <li>使用Jaeger或Zipkin进行分布式追踪，分析请求路径和延迟</li>
+          </ul>
+          
+          <h3>Q: 如何在不影响服务的情况下升级Ambient组件？</h3>
+          
+          <p>A: Ambient模式的一个主要优势是可以独立于应用升级服务网格组件：</p>
+          <ol>
+            <li>升级istiod控制平面：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 升级istiod
+istioctl upgrade --set profile=ambient</code></pre>
+          
+          <ol start="2">
+            <li>升级ztunnel组件：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 升级ztunnel
+kubectl rollout restart daemonset -n istio-system ztunnel</code></pre>
+          
+          <ol start="3">
+            <li>升级Waypoint代理：</li>
+          </ol>
+          
+          <pre><code class="language-bash"># 升级Waypoint代理
+kubectl rollout restart deployment -n your-namespace -l istio.io/gateway-name=your-waypoint</code></pre>
+          
+          <p>这些操作可以在不重启应用Pod的情况下完成。</p>
+          
+          <h3>Q: Ambient模式的最低Kubernetes版本要求是什么？</h3>
+          
+          <p>A: Ambient模式要求Kubernetes 1.24或更高版本。此外，如果使用eBPF功能，需要Linux内核5.10或更高版本。</p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <p>Istio Ambient指南 &copy; 2025</p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- 延迟加载非关键JS -->
+  <script src="../js/main.js" defer></script>
+  
+  <!-- 骨架屏加载脚本 -->
+  <script>
+    // 标记页面正在加载
+    document.body.classList.add('loading');
+    
+    // 页面内容加载完成后隐藏骨架屏
+    window.addEventListener('load', function() {
+      // 给骨架屏一个短暂的延迟，确保CSS已完全应用
+      setTimeout(function() {
+        document.getElementById('skeleton-screen').classList.add('loaded');
+        document.body.classList.remove('loading');
+        document.body.classList.add('loaded');
+      }, 300);
+    });
+    
+    // 如果页面加载时间过长，也要隐藏骨架屏（最多等待3秒）
+    setTimeout(function() {
+      document.getElementById('skeleton-screen').classList.add('loaded');
+      document.body.classList.remove('loading');
+      document.body.classList.add('loaded');
+    }, 3000);
+  </script>
+  
+  <!-- 加载优化脚本 -->
+  <script>
+    // 用于处理CSS预加载的辅助函数
+    !function(n){"use strict";n.loadCSS||(n.loadCSS=function(){});var o=loadCSS.relpreload={};if(o.support=function(){var e;try{e=n.document.createElement("link").relList.supports("preload")}catch(t){e=!1}return function(){return e}}(),o.bindMediaToggle=function(t){var e=t.media||"all";function a(){t.addEventListener?t.removeEventListener("load",a):t.attachEvent&&t.detachEvent("onload",a),t.setAttribute("onload",null),t.media=e}t.addEventListener?t.addEventListener("load",a):t.attachEvent&&t.attachEvent("onload",a),setTimeout(function(){t.rel="stylesheet",t.media="only x"}),setTimeout(a,3e3)},o.poly=function(){if(!o.support())for(var t=n.document.getElementsByTagName("link"),e=0;e<t.length;e++){var a=t[e];"preload"!==a.rel||"style"!==a.getAttribute("as")||a.getAttribute("data-loadcss")||(a.setAttribute("data-loadcss",!0),o.bindMediaToggle(a))}},!o.support()){o.poly();var t=n.setInterval(o.poly,500);n.addEventListener?n.addEventListener("load",function(){o.poly(),n.clearInterval(t)}):n.attachEvent&&n.attachEvent("onload",function(){o.poly(),n.clearInterval(t)})}"undefined"!=typeof exports?exports.loadCSS=loadCSS:n.loadCSS=loadCSS}("undefined"!=typeof global?global:this);
+  </script>
+</body>
+</html>

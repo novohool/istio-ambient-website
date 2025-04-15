@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>架构对比 - Istio Ambient指南</title>
+  <!-- 关键CSS内联 -->
+  <style>
+    /* 关键渲染路径CSS */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: #2d3748;
+      background-color: #f8f9fa;
+    }
+    .container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 15px;
+    }
+    header {
+      background-color: #2c5282;
+      color: white;
+      padding: 1rem 0;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: white;
+      text-decoration: none;
+    }
+    .nav-links {
+      display: flex;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .nav-links li {
+      margin-left: 1.5rem;
+    }
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+    .nav-links a:hover, .nav-links a.active {
+      color: #90cdf4;
+    }
+    
+    /* SVG网格布局 */
+    .svg-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin: 2rem 0;
+    }
+    
+    .svg-grid-item {
+      background-color: white;
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .svg-grid-item .diagram {
+      max-width: 100%;
+      height: auto;
+    }
+    
+    .svg-grid-item .diagram-title {
+      margin-top: 1rem;
+      font-weight: 500;
+      text-align: center;
+      color: #2c5282;
+    }
+    
+    /* 骨架屏基本样式 - 内联关键部分 */
+    .skeleton-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #f8f9fa;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      transition: opacity 0.3s ease-out;
+    }
+    .skeleton-header {
+      height: 60px;
+      background-color: #2c5282;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .skeleton-nav {
+      display: flex;
+      padding: 15px 5%;
+    }
+    .skeleton-logo {
+      width: 180px;
+      height: 30px;
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+    .skeleton-menu {
+      display: flex;
+      margin-left: auto;
+    }
+    .skeleton-menu-item {
+      width: 80px;
+      height: 30px;
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      margin-left: 15px;
+    }
+    body.loading {
+      overflow: hidden;
+    }
+    body.loading .page-content {
+      opacity: 0;
+    }
+    @keyframes pulse {
+      0% { opacity: 0.6; }
+      50% { opacity: 0.8; }
+      100% { opacity: 0.6; }
+    }
+    .skeleton-logo, .skeleton-menu-item {
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+  </style>
+  
+  <!-- 预加载骨架屏CSS -->
+  <link rel="preload" href="../css/skeleton.css" as="style">
+  <link rel="stylesheet" href="../css/skeleton.css">
+  
+  <!-- 预加载CSS文件 -->
+  <link rel="preload" href="../css/styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="../css/svg-styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="../css/responsive.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  
+  <!-- 回退方案 -->
+  <noscript>
+    <link rel="stylesheet" href="../css/skeleton.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/svg-styles.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+  </noscript>
+  
+  <!-- 预加载关键JS文件 -->
+  <link rel="preload" href="../js/main.js" as="script">
+</head>
+<body class="loading architecture-comparison">
+  <!-- 骨架屏 -->
+  <div class="skeleton-screen" id="skeleton-screen">
+    <div class="skeleton-header">
+      <div class="skeleton-nav">
+        <div class="skeleton-logo"></div>
+        <div class="skeleton-menu">
+          <div class="skeleton-menu-item"></div>
+          <div class="skeleton-menu-item"></div>
+          <div class="skeleton-menu-item"></div>
+          <div class="skeleton-menu-item"></div>
+          <div class="skeleton-menu-item"></div>
+        </div>
+      </div>
+    </div>
+    <div class="skeleton-content">
+      <div class="skeleton-sidebar"></div>
+      <div class="skeleton-main">
+        <div class="skeleton-title"></div>
+        <div class="skeleton-text"></div>
+        <div class="skeleton-text short"></div>
+        <div class="skeleton-image"></div>
+        
+        <div class="skeleton-subtitle"></div>
+        <div class="skeleton-text"></div>
+        <div class="skeleton-text short"></div>
+        <div class="skeleton-table"></div>
+        
+        <div class="skeleton-subtitle"></div>
+        <div class="skeleton-text"></div>
+        <div class="skeleton-text"></div>
+        <div class="skeleton-image"></div>
+      </div>
+    </div>
+    <div class="skeleton-footer"></div>
+  </div>
+
+  <!-- 页面实际内容 -->
+  <div class="page-content">
+    <header>
+      <div class="container">
+        <nav class="navbar">
+          <a href="index.html" class="logo">Istio Ambient指南</a>
+          <div class="menu-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <ul class="nav-links">
+            <li><a href="index.html">首页</a></li>
+            <li><a href="basic-concepts.html">基础概念</a></li>
+            <li><a href="architecture-comparison.html" class="active">架构对比</a></li>
+            <li><a href="waypoint-proxy.html">Waypoint代理</a></li>
+            <li><a href="practical-guide.html">实践指南</a></li>
+            <li><a href="troubleshooting.html">故障排除</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <aside class="sidebar">
+        <h2>目录</h2>
+        <ul class="sidebar-nav">
+          <li><a href="#overview" class="active">架构对比概述</a></li>
+          <li><a href="#deployment-model">部署模型对比</a></li>
+          <li><a href="#resource-consumption">资源消耗对比</a></li>
+          <li><a href="#performance">性能对比</a></li>
+          <li><a href="#feature-support">功能支持对比</a></li>
+          <li><a href="#migration">从Sidecar迁移到Ambient</a></li>
+        </ul>
+      </aside>
+
+      <section class="content">
+        <div class="content-header">
+          <h1>Ambient模式与Sidecar模式对比</h1>
+        </div>
+
+        <div class="content-section" id="overview">
+          <h2>架构对比概述</h2>
+          <p>Istio提供了两种主要的数据平面模式：传统的Sidecar模式和新的Ambient模式。这两种模式在架构设计、资源消耗、性能特性和功能支持方面存在显著差异。本页将详细比较这两种模式，帮助您选择最适合您环境的部署方式。</p>
+          
+          <div style="width: 50% !important; max-width: 500px !important; margin: 0 auto !important;">
+            <img src="../images/ambient-vs-sidecar.svg" alt="Ambient与Sidecar模式对比图" style="width: 100% !important; max-width: 100% !important; height: auto !important;">
+            <p style="text-align: center; font-size: 0.9rem; color: #4a5568; margin-top: 10px;">图1: Ambient模式与Sidecar模式架构对比</p>
+          </div>
+        </div>
+
+        <div class="content-section" id="deployment-model">
+          <h2>部署模型对比</h2>
+          
+          <h3>Sidecar模式</h3>
+          <p>在Sidecar模式中，每个应用Pod都会被注入一个Envoy代理容器。这个代理与应用容器共享网络命名空间，通过iptables规则拦截所有进出应用的流量。</p>
+          
+          <ul>
+            <li><strong>部署单位</strong>：每个应用Pod一个Sidecar代理</li>
+            <li><strong>流量拦截</strong>：通过iptables或eBPF在Pod内部拦截</li>
+            <li><strong>生命周期</strong>：与应用Pod绑定，共同创建和销毁</li>
+            <li><strong>配置方式</strong>：通过自动注入或手动注入</li>
+          </ul>
+          
+          <h3>Ambient模式</h3>
+          <p>Ambient模式采用分层架构，将服务网格功能从应用Pod中分离出来：</p>
+          
+          <ul>
+            <li><strong>部署单位</strong>：
+              <ul>
+                <li>ztunnel：每个节点一个（DaemonSet）</li>
+                <li>Waypoint代理：每个服务一个（可选）</li>
+              </ul>
+            </li>
+            <li><strong>流量拦截</strong>：在节点级别通过eBPF或CNI拦截</li>
+            <li><strong>生命周期</strong>：与应用Pod解耦，独立管理</li>
+            <li><strong>配置方式</strong>：通过命名空间标签启用，无需修改Pod</li>
+          </ul>
+          
+          <table>
+            <thead>
+              <tr>
+                <th>特性</th>
+                <th>Sidecar模式</th>
+                <th>Ambient模式</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>部署粒度</td>
+                <td>Pod级别</td>
+                <td>节点级别 + 服务级别</td>
+              </tr>
+              <tr>
+                <td>应用侵入性</td>
+                <td>高（需要注入）</td>
+                <td>低（透明）</td>
+              </tr>
+              <tr>
+                <td>配置复杂度</td>
+                <td>中等</td>
+                <td>低</td>
+              </tr>
+              <tr>
+                <td>升级影响</td>
+                <td>需要重启应用Pod</td>
+                <td>可以独立升级，无需重启应用</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="content-section" id="resource-consumption">
+          <h2>资源消耗对比</h2>
+          
+          <p>资源消耗是选择服务网格部署模式的重要考量因素。Ambient模式和Sidecar模式在CPU、内存和网络资源使用方面存在显著差异。</p>
+          
+          <h3>CPU和内存消耗</h3>
+          
+          <p>Sidecar模式中，每个应用Pod都有一个Envoy代理，导致总体资源消耗与Pod数量成正比增长。而Ambient模式通过共享ztunnel代理，显著减少了总体资源消耗。</p>
+          
+          <div style="width: 50% !important; max-width: 500px !important; margin: 0 auto !important;">
+            <img src="../images/resource-comparison.svg" alt="资源消耗对比图" style="width: 100% !important; max-width: 100% !important; height: auto !important;">
+            <p style="text-align: center; font-size: 0.9rem; color: #4a5568; margin-top: 10px;">图2: Ambient与Sidecar模式资源消耗对比</p>
+          </div>
+          
+          <p>在大规模部署中，Ambient模式的资源优势更为明显：</p>
+          
+          <table>
+            <thead>
+              <tr>
+                <th>部署规模</th>
+                <th>Sidecar模式资源消耗</th>
+                <th>Ambient模式资源消耗</th>
+                <th>节省比例</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>100个Pod</td>
+                <td>~10-15 CPU核心</td>
+                <td>~3-5 CPU核心</td>
+                <td>~60-70%</td>
+              </tr>
+              <tr>
+                <td>500个Pod</td>
+                <td>~50-75 CPU核心</td>
+                <td>~15-20 CPU核心</td>
+                <td>~70-75%</td>
+              </tr>
+              <tr>
+                <td>1000个Pod</td>
+                <td>~100-150 CPU核心</td>
+                <td>~25-35 CPU核心</td>
+                <td>~75-80%</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <p>注意：实际资源消耗取决于多种因素，包括流量模式、配置复杂度和硬件规格。</p>
+        </div>
+
+        <div class="content-section" id="performance">
+          <h2>性能对比</h2>
+          
+          <p>性能是评估服务网格部署模式的另一个关键指标。两种模式在延迟、吞吐量和扩展性方面各有优劣。</p>
+          
+          <h3>请求延迟和吞吐量</h3>
+          
+          <p>在基本的L4功能（如mTLS）方面，Ambient模式的ztunnel与Sidecar模式的性能相当。但在需要L7处理时，Ambient模式需要额外的网络跳转到Waypoint代理，可能增加一定延迟。</p>
+          
+          <!-- 使用更强的内联样式控制图片大小 -->
+          <div style="width: 60% !important; max-width: 600px !important; margin: 0 auto !important; display: flex !important; flex-wrap: wrap !important; justify-content: space-between !important;">
+            <div style="width: 48% !important; margin-bottom: 20px !important;">
+              <img src="../images/latency-comparison.svg" alt="延迟对比图" style="width: 100% !important; max-width: 100% !important; height: auto !important;">
+              <p style="text-align: center; font-size: 0.9rem; color: #4a5568; margin-top: 10px;">图3a: 请求延迟对比</p>
+            </div>
+            <div style="width: 48% !important; margin-bottom: 20px !important;">
+              <img src="../images/ambient-vs-sidecar-fixed.svg" alt="资源效率对比图" style="width: 100% !important; max-width: 100% !important; height: auto !important;">
+              <p style="text-align: center; font-size: 0.9rem; color: #4a5568; margin-top: 10px;">图3b: 资源效率对比</p>
+            </div>
+          </div>
+          
+          <h3>启动时间</h3>
+          
+          <p>Ambient模式显著改善了应用启动时间，因为应用不需要等待Sidecar初始化：</p>
+          
+          <ul>
+            <li><strong>Sidecar模式</strong>：应用启动需要等待Sidecar初始化，通常增加0.5-2秒</li>
+            <li><strong>Ambient模式</strong>：应用可以立即启动，ztunnel独立运行</li>
+          </ul>
+          
+          <h3>扩展性</h3>
+          
+          <p>在大规模部署中，Ambient模式的扩展性优势明显：</p>
+          
+          <ul>
+            <li><strong>配置分发</strong>：Ambient模式需要分发的配置数量更少，减轻了控制平面负担</li>
+            <li><strong>连接数</strong>：ztunnel集中管理连接，减少了总体连接数</li>
+            <li><strong>动态扩展</strong>：应用可以独立于服务网格组件扩展</li>
+          </ul>
+        </div>
+
+        <div class="content-section" id="feature-support">
+          <h2>功能支持对比</h2>
+          
+          <p>虽然Ambient模式提供了许多优势，但在功能支持方面与成熟的Sidecar模式相比仍有差距。</p>
+          
+          <table>
+            <thead>
+              <tr>
+                <th>功能</th>
+                <th>Sidecar模式</th>
+                <th>Ambient模式</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>流量管理（L4）</td>
+                <td>完全支持</td>
+                <td>完全支持</td>
+              </tr>
+              <tr>
+                <td>流量管理（L7）</td>
+                <td>完全支持</td>
+                <td>通过Waypoint支持</td>
+              </tr>
+              <tr>
+                <td>mTLS加密</td>
+                <td>完全支持</td>
+                <td>完全支持</td>
+              </tr>
+              <tr>
+                <td>授权策略</td>
+                <td>完全支持</td>
+                <td>部分支持</td>
+              </tr>
+              <tr>
+                <td>故障注入</td>
+                <td>完全支持</td>
+                <td>通过Waypoint支持</td>
+              </tr>
+              <tr>
+                <td>遥测和监控</td>
+                <td>完全支持</td>
+                <td>基本支持，持续改进中</td>
+              </tr>
+              <tr>
+                <td>协议支持</td>
+                <td>广泛（HTTP, gRPC, TCP等）</td>
+                <td>逐步增加中</td>
+              </tr>
+              <tr>
+                <td>WebAssembly扩展</td>
+                <td>支持</td>
+                <td>计划中</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <p>注意：Ambient模式仍在积极开发中，功能支持将随着版本更新而增加。</p>
+        </div>
+
+        <div class="content-section" id="migration">
+          <h2>从Sidecar迁移到Ambient</h2>
+          
+          <p>如果您正在考虑从Sidecar模式迁移到Ambient模式，以下是一些关键考虑因素和建议的迁移路径：</p>
+          
+          <h3>迁移前评估</h3>
+          
+          <ul>
+            <li>评估您当前使用的Istio功能是否在Ambient模式中受支持</li>
+            <li>检查您的Kubernetes环境是否满足Ambient模式的要求</li>
+            <li>评估迁移对应用性能和资源使用的潜在影响</li>
+          </ul>
+          
+          <h3>渐进式迁移路径</h3>
+          
+          <p>Istio支持在同一集群中同时运行Sidecar和Ambient模式，这使得渐进式迁移成为可能：</p>
+          
+          <ol>
+            <li><strong>准备环境</strong>：安装支持Ambient模式的Istio版本</li>
+            <li><strong>启用Ambient基础设施</strong>：部署ztunnel组件</li>
+            <li><strong>选择试点命名空间</strong>：选择低风险服务进行首次迁移</li>
+            <li><strong>迁移命名空间</strong>：移除Sidecar注入，启用Ambient模式</li>
+            <li><strong>添加Waypoint代理</strong>：为需要L7功能的服务配置Waypoint</li>
+            <li><strong>验证和监控</strong>：确认服务功能和性能符合预期</li>
+            <li><strong>扩展迁移</strong>：逐步将更多命名空间迁移到Ambient模式</li>
+          </ol>
+          
+          <div style="width: 50% !important; max-width: 500px !important; margin: 0 auto !important;">
+            <img src="../images/migration-path.svg" alt="迁移路径图" style="width: 100% !important; max-width: 100% !important; height: auto !important;">
+            <p style="text-align: center; font-size: 0.9rem; color: #4a5568; margin-top: 10px;">图4: 从Sidecar到Ambient的渐进式迁移路径</p>
+          </div>
+          
+          <h3>迁移注意事项</h3>
+          
+          <ul>
+            <li>保留关键的Istio配置（VirtualService, DestinationRule等）</li>
+            <li>调整授权策略以适应Ambient模式的实现方式</li>
+            <li>更新监控和告警系统以适应新的遥测数据格式</li>
+            <li>为运维团队提供Ambient模式的培训</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <p>Istio Ambient指南 &copy; 2025</p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- 延迟加载非关键JS -->
+  <script src="../js/main.js" defer></script>
+  
+  <!-- 骨架屏加载脚本 -->
+  <script>
+    // 标记页面正在加载
+    document.body.classList.add('loading');
+    
+    // 页面内容加载完成后隐藏骨架屏
+    window.addEventListener('load', function() {
+      // 给骨架屏一个短暂的延迟，确保CSS已完全应用
+      setTimeout(function() {
+        document.getElementById('skeleton-screen').classList.add('loaded');
+        document.body.classList.remove('loading');
+        document.body.classList.add('loaded');
+      }, 300);
+    });
+    
+    // 如果页面加载时间过长，也要隐藏骨架屏（最多等待3秒）
+    setTimeout(function() {
+      document.getElementById('skeleton-screen').classList.add('loaded');
+      document.body.classList.remove('loading');
+      document.body.classList.add('loaded');
+    }, 3000);
+  </script>
+  
+  <!-- 加载优化脚本 -->
+  <script>
+    // 用于处理CSS预加载的辅助函数
+    !function(n){"use strict";n.loadCSS||(n.loadCSS=function(){});var o=loadCSS.relpreload={};if(o.support=function(){var e;try{e=n.document.createElement("link").relList.supports("preload")}catch(t){e=!1}return function(){return e}}(),o.bindMediaToggle=function(t){var e=t.media||"all";function a(){t.addEventListener?t.removeEventListener("load",a):t.attachEvent&&t.detachEvent("onload",a),t.setAttribute("onload",null),t.media=e}t.addEventListener?t.addEventListener("load",a):t.attachEvent&&t.attachEvent("onload",a),setTimeout(function(){t.rel="stylesheet",t.media="only x"}),setTimeout(a,3e3)},o.poly=function(){if(!o.support())for(var t=n.document.getElementsByTagName("link"),e=0;e<t.length;e++){var a=t[e];"preload"!==a.rel||"style"!==a.getAttribute("as")||a.getAttribute("data-loadcss")||(a.setAttribute("data-loadcss",!0),o.bindMediaToggle(a))}},!o.support()){o.poly();var t=n.setInterval(o.poly,500);n.addEventListener?n.addEventListener("load",function(){o.poly(),n.clearInterval(t)}):n.attachEvent&&n.attachEvent("onload",function(){o.poly(),n.clearInterval(t)})}"undefined"!=typeof exports?exports.loadCSS=loadCSS:n.loadCSS=loadCSS}("undefined"!=typeof global?global:this);
+  </script>
+</body>
+</html>

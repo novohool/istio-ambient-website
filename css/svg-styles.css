@@ -1,0 +1,264 @@
+.svg-container {
+  width: 85%;  /* 从80%增加到85% */
+  max-width: 850px;  /* 从800px增加到850px */
+  margin: 40px auto;
+  text-align: center;
+  position: relative;
+  display: block;
+  clear: both;
+}
+
+.svg-container svg {
+  width: 100%;
+  height: auto;
+  max-height: 550px;  /* 从500px增加到550px */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  background-color: #fff;
+  padding: 15px;
+  display: block;
+}
+
+/* 添加分隔线，增强视觉分离 */
+.svg-container:not(:last-child)::after {
+  content: "";
+  display: block;
+  width: 60%;
+  height: 1px;
+  background-color: #e2e8f0;
+  margin: 30px auto 0;
+}
+
+.diagram {
+  max-width: 85% !important;  /* 从80%增加到85% */
+  height: auto;
+  display: block;
+  margin: 40px auto;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  background-color: #fff;
+  padding: 15px;
+  position: relative;
+  clear: both;
+}
+
+.diagram-title {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #4a5568;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  font-style: italic;
+}
+
+/* 确保每个SVG容器在页面中有明确的位置 */
+.svg-section {
+  margin-bottom: 60px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #edf2f7;
+}
+
+/* 多图并排显示容器 */
+.svg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));  /* 从300px减小到280px */
+  gap: 25px;  /* 从30px减小到25px */
+  margin: 40px 0;
+}
+
+/* 多图并排显示的单个图表容器 */
+.svg-grid-item {
+  background-color: white;
+  border-radius: 8px;
+  padding: 0.8rem;  /* 从1rem减小到0.8rem */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 25px;  /* 从30px减小到25px */
+  text-align: center;
+}
+
+.svg-grid-item .diagram {
+  max-width: 100% !important;
+  margin: 0 auto 15px;
+  box-shadow: none;
+  padding: 0;
+}
+
+.svg-grid-item .diagram-title {
+  margin-top: 0.8rem;  /* 从1rem减小到0.8rem */
+  font-weight: 500;
+  color: #2c5282;
+  font-style: normal;
+  margin-bottom: 0;
+}
+
+/* 特别针对架构对比页面的SVG尺寸调整 - 与内联样式配合 */
+.architecture-comparison .svg-container,
+.architecture-comparison .diagram {
+  max-width: 50% !important;  /* 进一步减小架构对比页面的显示尺寸 */
+}
+
+.architecture-comparison .svg-grid-item .diagram {
+  max-width: 100% !important;  /* 网格内的图表使用内联样式控制 */
+}
+
+/* 确保内联样式优先级 */
+.architecture-comparison .svg-grid[style],
+.architecture-comparison .svg-grid-item[style] {
+  /* 空规则，确保内联样式生效 */
+}
+
+/* 海报风格首页样式 */
+.poster-header {
+  text-align: center;
+  padding: 3rem 0;
+  background: linear-gradient(135deg, #2c5282 0%, #4299e1 100%);
+  color: white;
+  margin-bottom: 2rem;
+}
+
+.poster-header h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+.poster-header p {
+  font-size: 1.5rem;
+  max-width: 800px;
+  margin: 0 auto;
+  opacity: 0.9;
+}
+
+.poster-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin: 3rem 0;
+}
+
+.poster-item {
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.poster-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+.poster-image {
+  width: 100%;
+  height: 200px;
+  background-color: #f1f5f9;  /* 统一为#f1f5f9 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.poster-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.poster-image .feature-icon {
+  font-size: 4rem;
+  color: #2c5282;
+}
+
+.poster-content {
+  padding: 1.5rem;
+}
+
+.poster-content h3 {
+  margin-top: 0;
+  font-size: 1.5rem;
+  color: #2c5282;
+}
+
+.poster-content p {
+  color: #4a5568;
+  margin-bottom: 1.5rem;
+}
+
+.poster-cta {
+  text-align: center;
+  margin: 4rem 0;
+  padding: 3rem;
+  background-color: #f1f5f9;  /* 统一为#f1f5f9 */
+  border-radius: 8px;
+}
+
+.poster-cta h2 {
+  font-size: 2rem;
+  color: #2c5282;
+  margin-bottom: 1rem;
+}
+
+.poster-cta p {
+  font-size: 1.2rem;
+  max-width: 700px;
+  margin: 0 auto 2rem;
+  color: #4a5568;
+}
+
+.button-group {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .svg-container {
+    width: 90%;  /* 从95%减小到90% */
+    margin: 25px auto;  /* 从30px减小到25px */
+  }
+  
+  .diagram {
+    max-width: 90% !important;  /* 从95%减小到90% */
+    padding: 10px;
+    margin: 25px auto;  /* 从30px减小到25px */
+  }
+  
+  .svg-section {
+    margin-bottom: 35px;  /* 从40px减小到35px */
+  }
+  
+  .svg-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .poster-header h1 {
+    font-size: 2rem;
+  }
+  
+  .poster-header p {
+    font-size: 1.2rem;
+  }
+  
+  .poster-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .poster-cta {
+    padding: 2rem 1rem;
+  }
+  
+  .poster-cta h2 {
+    font-size: 1.5rem;
+  }
+  
+  .poster-cta p {
+    font-size: 1rem;
+  }
+}

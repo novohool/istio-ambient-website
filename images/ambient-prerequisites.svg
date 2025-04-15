@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="100%" height="100%" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+  <!-- 定义箭头标记 -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333"/>
+    </marker>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect x="0" y="0" width="800" height="500" fill="#f8f9fa" rx="10" ry="10"/>
+  
+  <!-- 标题 -->
+  <text x="400" y="50" font-family="Arial" font-size="24" text-anchor="middle" fill="#2c5282" font-weight="bold">Ambient模式安装前提条件</text>
+  
+  <!-- 主要内容框 -->
+  <rect x="50" y="80" width="700" height="370" fill="white" stroke="#ddd" stroke-width="2" rx="10" ry="10"/>
+  
+  <!-- 左侧：Kubernetes要求 -->
+  <rect x="80" y="100" width="300" height="330" fill="#ebf8ff" stroke="#3182ce" stroke-width="2" rx="5" ry="5"/>
+  <text x="230" y="130" font-family="Arial" font-size="18" text-anchor="middle" fill="#2c5282">Kubernetes要求</text>
+  
+  <!-- Kubernetes版本 -->
+  <rect x="100" y="150" width="260" height="60" fill="#3182ce" stroke="#2c5282" stroke-width="2" rx="5" ry="5"/>
+  <text x="230" y="175" font-family="Arial" font-size="16" text-anchor="middle" fill="white">Kubernetes版本</text>
+  <text x="230" y="195" font-family="Arial" font-size="14" text-anchor="middle" fill="white">1.24或更高版本</text>
+  
+  <!-- 网络插件 -->
+  <rect x="100" y="220" width="260" height="60" fill="#3182ce" stroke="#2c5282" stroke-width="2" rx="5" ry="5"/>
+  <text x="230" y="245" font-family="Arial" font-size="16" text-anchor="middle" fill="white">网络插件</text>
+  <text x="230" y="265" font-family="Arial" font-size="14" text-anchor="middle" fill="white">支持CNI链式调用</text>
+  
+  <!-- 资源要求 -->
+  <rect x="100" y="290" width="260" height="60" fill="#3182ce" stroke="#2c5282" stroke-width="2" rx="5" ry="5"/>
+  <text x="230" y="315" font-family="Arial" font-size="16" text-anchor="middle" fill="white">资源要求</text>
+  <text x="230" y="335" font-family="Arial" font-size="14" text-anchor="middle" fill="white">每节点至少4GB内存</text>
+  
+  <!-- 权限 -->
+  <rect x="100" y="360" width="260" height="60" fill="#3182ce" stroke="#2c5282" stroke-width="2" rx="5" ry="5"/>
+  <text x="230" y="385" font-family="Arial" font-size="16" text-anchor="middle" fill="white">权限要求</text>
+  <text x="230" y="405" font-family="Arial" font-size="14" text-anchor="middle" fill="white">集群管理员权限</text>
+  
+  <!-- 右侧：Istio要求 -->
+  <rect x="420" y="100" width="300" height="330" fill="#f0fff4" stroke="#38a169" stroke-width="2" rx="5" ry="5"/>
+  <text x="570" y="130" font-family="Arial" font-size="18" text-anchor="middle" fill="#2c5282">Istio要求</text>
+  
+  <!-- Istio版本 -->
+  <rect x="440" y="150" width="260" height="60" fill="#38a169" stroke="#2f855a" stroke-width="2" rx="5" ry="5"/>
+  <text x="570" y="175" font-family="Arial" font-size="16" text-anchor="middle" fill="white">Istio版本</text>
+  <text x="570" y="195" font-family="Arial" font-size="14" text-anchor="middle" fill="white">1.17或更高版本</text>
+  
+  <!-- Gateway API -->
+  <rect x="440" y="220" width="260" height="60" fill="#38a169" stroke="#2f855a" stroke-width="2" rx="5" ry="5"/>
+  <text x="570" y="245" font-family="Arial" font-size="16" text-anchor="middle" fill="white">Gateway API</text>
+  <text x="570" y="265" font-family="Arial" font-size="14" text-anchor="middle" fill="white">需安装Gateway API CRD</text>
+  
+  <!-- 安装模式 -->
+  <rect x="440" y="290" width="260" height="60" fill="#38a169" stroke="#2f855a" stroke-width="2" rx="5" ry="5"/>
+  <text x="570" y="315" font-family="Arial" font-size="16" text-anchor="middle" fill="white">安装模式</text>
+  <text x="570" y="335" font-family="Arial" font-size="14" text-anchor="middle" fill="white">使用ambient配置文件</text>
+  
+  <!-- 兼容性 -->
+  <rect x="440" y="360" width="260" height="60" fill="#38a169" stroke="#2f855a" stroke-width="2" rx="5" ry="5"/>
+  <text x="570" y="385" font-family="Arial" font-size="16" text-anchor="middle" fill="white">兼容性</text>
+  <text x="570" y="405" font-family="Arial" font-size="14" text-anchor="middle" fill="white">与现有Sidecar部署兼容</text>
+  
+  <!-- 连接线 -->
+  <path d="M 380 230 L 420 230" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <path d="M 380 320 L 420 320" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  
+  <!-- 中间标签 -->
+  <rect x="350" y="210" width="60" height="30" fill="white" fill-opacity="0.8" rx="15" ry="15" stroke="#ddd" stroke-width="1"/>
+  <text x="380" y="230" font-family="Arial" font-size="12" text-anchor="middle" fill="#2d3748">依赖</text>
+  
+  <rect x="350" y="300" width="60" height="30" fill="white" fill-opacity="0.8" rx="15" ry="15" stroke="#ddd" stroke-width="1"/>
+  <text x="380" y="320" font-family="Arial" font-size="12" text-anchor="middle" fill="#2d3748">支持</text>
+  
+  <!-- 底部注释 -->
+  <rect x="100" y="440" width="600" height="40" fill="#fff5f7" stroke="#d53f8c" stroke-width="1" rx="5" ry="5"/>
+  <text x="400" y="465" font-family="Arial" font-size="14" text-anchor="middle" fill="#2d3748">注意：在生产环境中部署前，请确保满足所有前提条件并进行充分测试</text>
+</svg>

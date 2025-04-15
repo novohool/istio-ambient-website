@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="100%" height="100%" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+  <!-- 定义箭头标记 -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333"/>
+    </marker>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect x="0" y="0" width="800" height="500" fill="#f8f9fa" rx="10" ry="10"/>
+  
+  <!-- 标题 -->
+  <text x="400" y="50" font-family="Arial" font-size="24" text-anchor="middle" fill="#2c5282" font-weight="bold">请求延迟对比</text>
+  
+  <!-- 图表区域 -->
+  <rect x="100" y="100" width="600" height="300" fill="white" stroke="#ddd" stroke-width="2" rx="5" ry="5"/>
+  
+  <!-- Y轴 -->
+  <line x1="150" y1="100" x2="150" y2="400" stroke="#333" stroke-width="2"/>
+  <text x="150" y="90" font-family="Arial" font-size="14" text-anchor="middle" fill="#2d3748">延迟(ms)</text>
+  
+  <!-- X轴 -->
+  <line x1="150" y1="400" x2="700" y2="400" stroke="#333" stroke-width="2"/>
+  
+  <!-- 刻度 -->
+  <!-- Y轴刻度 -->
+  <line x1="145" y1="100" x2="155" y2="100" stroke="#333" stroke-width="2"/>
+  <text x="135" y="105" font-family="Arial" font-size="12" text-anchor="end" fill="#2d3748">10</text>
+  
+  <line x1="145" y1="175" x2="155" y2="175" stroke="#333" stroke-width="2"/>
+  <text x="135" y="180" font-family="Arial" font-size="12" text-anchor="end" fill="#2d3748">7.5</text>
+  
+  <line x1="145" y1="250" x2="155" y2="250" stroke="#333" stroke-width="2"/>
+  <text x="135" y="255" font-family="Arial" font-size="12" text-anchor="end" fill="#2d3748">5</text>
+  
+  <line x1="145" y1="325" x2="155" y2="325" stroke="#333" stroke-width="2"/>
+  <text x="135" y="330" font-family="Arial" font-size="12" text-anchor="end" fill="#2d3748">2.5</text>
+  
+  <line x1="145" y1="400" x2="155" y2="400" stroke="#333" stroke-width="2"/>
+  <text x="135" y="405" font-family="Arial" font-size="12" text-anchor="end" fill="#2d3748">0</text>
+  
+  <!-- 场景标签 -->
+  <text x="250" y="425" font-family="Arial" font-size="14" text-anchor="middle" fill="#2d3748">仅L4功能</text>
+  <text x="425" y="425" font-family="Arial" font-size="14" text-anchor="middle" fill="#2d3748">L7功能</text>
+  <text x="600" y="425" font-family="Arial" font-size="14" text-anchor="middle" fill="#2d3748">复杂路由</text>
+  
+  <!-- 数据柱 - Sidecar模式 -->
+  <rect x="200" y="325" width="50" height="75" fill="#3182ce" stroke="#2c5282" stroke-width="1"/>
+  <rect x="375" y="250" width="50" height="150" fill="#3182ce" stroke="#2c5282" stroke-width="1"/>
+  <rect x="550" y="175" width="50" height="225" fill="#3182ce" stroke="#2c5282" stroke-width="1"/>
+  
+  <!-- 数据柱 - Ambient模式(ztunnel) -->
+  <rect x="260" y="325" width="50" height="75" fill="#805ad5" stroke="#553c9a" stroke-width="1"/>
+  
+  <!-- 数据柱 - Ambient模式(Waypoint) -->
+  <rect x="435" y="225" width="50" height="175" fill="#9f7aea" stroke="#6b46c1" stroke-width="1"/>
+  <rect x="610" y="150" width="50" height="250" fill="#9f7aea" stroke="#6b46c1" stroke-width="1"/>
+  
+  <!-- 标签 -->
+  <text x="225" y="315" font-family="Arial" font-size="12" text-anchor="middle" fill="white">2.5ms</text>
+  <text x="285" y="315" font-family="Arial" font-size="12" text-anchor="middle" fill="white">2.5ms</text>
+  
+  <text x="400" y="240" font-family="Arial" font-size="12" text-anchor="middle" fill="white">5ms</text>
+  <text x="460" y="215" font-family="Arial" font-size="12" text-anchor="middle" fill="white">5.5ms</text>
+  
+  <text x="575" y="165" font-family="Arial" font-size="12" text-anchor="middle" fill="white">7.5ms</text>
+  <text x="635" y="140" font-family="Arial" font-size="12" text-anchor="middle" fill="white">8ms</text>
+  
+  <!-- 图例 -->
+  <rect x="150" y="450" width="20" height="20" fill="#3182ce" rx="3" ry="3"/>
+  <text x="180" y="465" font-family="Arial" font-size="14" text-anchor="start" fill="#2d3748">Sidecar模式</text>
+  
+  <rect x="350" y="450" width="20" height="20" fill="#805ad5" rx="3" ry="3"/>
+  <text x="380" y="465" font-family="Arial" font-size="14" text-anchor="start" fill="#2d3748">Ambient模式 (ztunnel)</text>
+  
+  <rect x="550" y="450" width="20" height="20" fill="#9f7aea" rx="3" ry="3"/>
+  <text x="580" y="465" font-family="Arial" font-size="14" text-anchor="start" fill="#2d3748">Ambient模式 (Waypoint)</text>
+</svg>

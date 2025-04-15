@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Waypoint代理 - Istio Ambient指南</title>
+  <!-- 关键CSS内联 -->
+  <style>
+    /* 关键渲染路径CSS */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: #2d3748;
+      background-color: #f8f9fa;
+    }
+    .container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 15px;
+    }
+    header {
+      background-color: #2c5282;
+      color: white;
+      padding: 1rem 0;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: white;
+      text-decoration: none;
+    }
+    .nav-links {
+      display: flex;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .nav-links li {
+      margin-left: 1.5rem;
+    }
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+    .nav-links a:hover, .nav-links a.active {
+      color: #90cdf4;
+    }
+    
+    /* 骨架屏基本样式 - 内联关键部分 */
+    .skeleton-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #f8f9fa;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      transition: opacity 0.3s ease-out;
+    }
+    .skeleton-header {
+      height: 60px;
+      background-color: #2c5282;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .skeleton-nav {
+      display: flex;
+      padding: 15px 5%;
+    }
+    .skeleton-logo {
+      width: 180px;
+      height: 30px;
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+    .skeleton-menu {
+      display: flex;
+      margin-left: auto;
+    }
+    .skeleton-menu-item {
+      width: 80px;
+      height: 30px;
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      margin-left: 15px;
+    }
+    body.loading {
+      overflow: hidden;
+    }
+    body.loading .page-content {
+      opacity: 0;
+    }
+    @keyframes pulse {
+      0% { opacity: 0.6; }
+      50% { opacity: 0.8; }
+      100% { opacity: 0.6; }
+    }
+    .skeleton-logo, .skeleton-menu-item {
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+  </style>
+  
+  <!-- 预加载骨架屏CSS -->
+  <link rel="preload" href="../css/skeleton.css" as="style">
+  <link rel="stylesheet" href="../css/skeleton.css">
+  
+  <!-- 预加载CSS文件 -->
+  <link rel="preload" href="../css/styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="../css/svg-styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="../css/responsive.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  
+  <!-- 回退方案 -->
+  <noscript>
+    <link rel="stylesheet" href="../css/skeleton.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/svg-styles.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+  </noscript>
+  
+  <!-- 预加载关键JS文件 -->
+  <link rel="preload" href="../js/main.js" as="script">
+</head>
+<body class="loading">
+  <!-- 骨架屏 -->
+  <div class="skeleton-screen" id="skeleton-screen">
+    <div class="skeleton-header">
+      <div class="skeleton-nav">
+        <div class="skeleton-logo"></div>
+        <div class="skeleton-menu">
+          <div class="skeleton-menu-item"></div>
+          <div class="skeleton-menu-item"></div>
+          <div class="skeleton-menu-item"></div>
+          <div class="skeleton-menu-item"></div>
+          <div class="skeleton-menu-item"></div>
+        </div>
+      </div>
+    </div>
+    <div class="skeleton-content">
+      <div class="skeleton-sidebar"></div>
+      <div class="skeleton-main">
+        <div class="skeleton-title"></div>
+        <div class="skeleton-text"></div>
+        <div class="skeleton-text short"></div>
+        <div class="skeleton-image"></div>
+        
+        <div class="skeleton-subtitle"></div>
+        <div class="skeleton-text"></div>
+        <div class="skeleton-text short"></div>
+        <div class="skeleton-image"></div>
+        
+        <div class="skeleton-subtitle"></div>
+        <div class="skeleton-text"></div>
+        <div class="skeleton-text"></div>
+        <div class="skeleton-code"></div>
+      </div>
+    </div>
+    <div class="skeleton-footer"></div>
+  </div>
+
+  <!-- 页面实际内容 -->
+  <div class="page-content">
+    <header>
+      <div class="container">
+        <nav class="navbar">
+          <a href="index.html" class="logo">Istio Ambient指南</a>
+          <div class="menu-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <ul class="nav-links">
+            <li><a href="index.html">首页</a></li>
+            <li><a href="basic-concepts.html">基础概念</a></li>
+            <li><a href="architecture-comparison.html">架构对比</a></li>
+            <li><a href="waypoint-proxy.html" class="active">Waypoint代理</a></li>
+            <li><a href="practical-guide.html">实践指南</a></li>
+            <li><a href="troubleshooting.html">故障排除</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <aside class="sidebar">
+        <h2>目录</h2>
+        <ul class="sidebar-nav">
+          <li><a href="#overview" class="active">Waypoint代理概述</a></li>
+          <li><a href="#architecture">Waypoint架构</a></li>
+          <li><a href="#deployment-models">部署模型</a></li>
+          <li><a href="#workflow">工作流程</a></li>
+          <li><a href="#configuration">配置方法</a></li>
+          <li><a href="#use-cases">应用场景</a></li>
+          <li><a href="#best-practices">最佳实践</a></li>
+        </ul>
+      </aside>
+
+      <section class="content">
+        <div class="content-header">
+          <h1>Waypoint代理详解</h1>
+        </div>
+
+        <div class="content-section" id="overview">
+          <h2>Waypoint代理概述</h2>
+          <p>Waypoint代理是Istio Ambient模式中的关键组件，负责提供L7（应用层）功能。与ztunnel不同，Waypoint代理不是默认部署的，而是根据需要为特定服务启用。Waypoint代理允许您在Ambient模式中使用高级流量管理、授权策略和可观察性功能，同时保持与应用的解耦。</p>
+          
+          <div class="note-box">
+            <h4>Waypoint功能说明</h4>
+            <p><strong>Waypoint代理</strong>是Istio Ambient模式中提供L7功能的专用代理，它作为独立的Pod部署，不与应用Pod绑定。Waypoint代理通过Gateway API资源配置，为特定服务提供高级流量管理、授权和可观察性功能。它是Ambient模式的可选组件，只有需要L7功能的服务才需要部署Waypoint代理。</p>
+            <p>Waypoint代理的主要职责包括：</p>
+            <ul>
+              <li>路由和流量分割</li>
+              <li>请求重试和超时</li>
+              <li>细粒度授权策略</li>
+              <li>故障注入</li>
+              <li>高级遥测和监控</li>
+            </ul>
+            <p>与传统Sidecar不同，Waypoint代理可以独立于应用升级和管理，减少了对应用生命周期的影响。</p>
+          </div>
+          
+          <div class="svg-container">
+            <img src="../images/waypoint-proxy-overview.svg" alt="Waypoint代理概述图" class="diagram">
+            <p class="diagram-title">图1: Waypoint代理在Ambient架构中的位置</p>
+          </div>
+          
+          <p>Waypoint代理的主要特点：</p>
+          <ul>
+            <li><strong>按服务部署</strong>：每个需要L7功能的服务部署一个Waypoint代理</li>
+            <li><strong>独立生命周期</strong>：与应用Pod完全分离，可以独立升级和管理</li>
+            <li><strong>透明拦截</strong>：通过ztunnel自动路由流量，对应用透明</li>
+            <li><strong>高级功能支持</strong>：提供路由、重试、超时、故障注入等L7功能</li>
+          </ul>
+        </div>
+
+        <div class="content-section" id="architecture">
+          <h2>Waypoint架构</h2>
+          
+          <p>Waypoint代理基于Envoy构建，但其部署和管理方式与传统Sidecar模式有显著不同。在Ambient模式中，Waypoint代理作为独立的Kubernetes部署存在，而不是注入到应用Pod中。</p>
+          
+          <div class="svg-container">
+            <img src="../images/waypoint-architecture.svg" alt="Waypoint架构图" class="diagram">
+            <p class="diagram-title">图2: Waypoint代理架构详解</p>
+          </div>
+          
+          <h3>核心组件</h3>
+          
+          <ul>
+            <li><strong>Envoy代理</strong>：处理L7流量管理和策略执行</li>
+            <li><strong>Gateway API资源</strong>：定义Waypoint代理的配置和行为</li>
+            <li><strong>Waypoint CRD</strong>：Kubernetes自定义资源，用于管理Waypoint生命周期</li>
+            <li><strong>Istio控制平面</strong>：为Waypoint代理提供配置和证书</li>
+          </ul>
+          
+          <h3>与ztunnel的关系</h3>
+          
+          <p>Waypoint代理与ztunnel紧密协作：</p>
+          
+          <ul>
+            <li>ztunnel负责L4安全和基本连接</li>
+            <li>当需要L7处理时，ztunnel将流量转发到Waypoint代理</li>
+            <li>Waypoint处理完L7功能后，流量返回ztunnel或直接发送到目标</li>
+          </ul>
+        </div>
+
+        <div class="content-section" id="deployment-models">
+          <h2>部署模型</h2>
+          
+          <p>Waypoint代理支持多种部署模型，可以根据您的需求和环境选择最合适的方式。</p>
+          
+          <div class="svg-container">
+            <img src="../images/waypoint-deployment-models.svg" alt="Waypoint部署模型图" class="diagram">
+            <p class="diagram-title">图3: Waypoint代理部署模型对比</p>
+          </div>
+          
+          <h3>命名空间级别部署</h3>
+          
+          <p>在这种模型中，为整个命名空间部署一个共享的Waypoint代理：</p>
+          
+          <ul>
+            <li><strong>优点</strong>：资源消耗低，管理简单</li>
+            <li><strong>缺点</strong>：隔离性较差，单点故障风险</li>
+            <li><strong>适用场景</strong>：开发环境、小规模部署、资源受限环境</li>
+          </ul>
+          
+          <h3>服务级别部署</h3>
+          
+          <p>为每个需要L7功能的服务部署专用Waypoint代理：</p>
+          
+          <ul>
+            <li><strong>优点</strong>：隔离性好，故障域小，可针对服务定制</li>
+            <li><strong>缺点</strong>：资源消耗较高，管理复杂度增加</li>
+            <li><strong>适用场景</strong>：生产环境、关键业务服务、需要细粒度控制的场景</li>
+          </ul>
+          
+          <h3>混合部署</h3>
+          
+          <p>结合上述两种模型，为关键服务使用专用Waypoint，其他服务共享Waypoint：</p>
+          
+          <ul>
+            <li><strong>优点</strong>：平衡资源消耗和隔离性</li>
+            <li><strong>缺点</strong>：配置和管理较复杂</li>
+            <li><strong>适用场景</strong>：混合工作负载，既有关键服务又有非关键服务</li>
+          </ul>
+        </div>
+
+        <div class="content-section" id="workflow">
+          <h2>工作流程</h2>
+          
+          <p>了解Waypoint代理的工作流程有助于理解其在Ambient模式中的作用和行为。</p>
+          
+          <div class="svg-container">
+            <img src="../images/waypoint-workflow.svg" alt="Waypoint工作流程图" class="diagram">
+            <p class="diagram-title">图4: Waypoint代理工作流程</p>
+          </div>
+          
+          <h3>请求流程</h3>
+          
+          <ol>
+            <li><strong>客户端发起请求</strong>：应用Pod发送请求到目标服务</li>
+            <li><strong>ztunnel拦截</strong>：节点上的ztunnel拦截出站流量</li>
+            <li><strong>L7处理判断</strong>：ztunnel判断是否需要L7处理
+              <ul>
+                <li>如果不需要L7处理：ztunnel直接处理L4安全并转发</li>
+                <li>如果需要L7处理：继续下一步</li>
+              </ul>
+            </li>
+            <li><strong>转发到Waypoint</strong>：ztunnel将流量转发到目标服务的Waypoint代理</li>
+            <li><strong>Waypoint处理</strong>：Waypoint执行L7策略（路由、重试、授权等）</li>
+            <li><strong>转发到目标</strong>：Waypoint将处理后的请求发送到目标服务</li>
+            <li><strong>响应返回</strong>：响应沿相同路径返回客户端</li>
+          </ol>
+          
+          <h3>控制平面交互</h3>
+          
+          <p>Waypoint代理与Istio控制平面的交互：</p>
+          
+          <ul>
+            <li>控制平面监控Gateway API和Istio配置资源</li>
+            <li>生成Waypoint代理的配置并推送</li>
+            <li>管理Waypoint代理的生命周期（创建、更新、删除）</li>
+            <li>提供证书和身份信息</li>
+          </ul>
+        </div>
+
+        <div class="content-section" id="configuration">
+          <h2>配置方法</h2>
+          
+          <p>Waypoint代理的配置主要通过Gateway API资源和Istio资源完成。</p>
+          
+          <div class="svg-container">
+            <img src="../images/waypoint-configuration.svg" alt="Waypoint配置图" class="diagram">
+            <p class="diagram-title">图5: Waypoint代理配置方法</p>
+          </div>
+          
+          <h3>启用Waypoint代理</h3>
+          
+          <p>为服务启用Waypoint代理有两种方法：使用YAML配置文件或使用istioctl命令。</p>
+          
+          <h4>方法一：使用YAML配置文件</h4>
+          
+          <pre><code class="language-yaml"># 1. 创建Waypoint代理
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: Gateway
+metadata:
+  name: httpbin-waypoint
+  namespace: demo-ambient
+  annotations:
+    istio.io/service-account: httpbin
+spec:
+  gatewayClassName: istio-waypoint
+  listeners:
+  - name: mesh
+    port: 15008
+    protocol: HBONE</code></pre>
+          
+          <p>应用此配置：</p>
+          
+          <pre><code class="language-bash">kubectl apply -f waypoint.yaml</code></pre>
+          
+          <h4>方法二：使用istioctl命令</h4>
+          
+          <p>Istio提供了专门的istioctl命令来简化Waypoint代理的部署：</p>
+          
+          <pre><code class="language-bash"># 为特定服务账号创建Waypoint代理
+istioctl waypoint generate --service-account httpbin --namespace demo-ambient | kubectl apply -f -
+
+# 或者为整个命名空间创建Waypoint代理
+istioctl waypoint generate --namespace demo-ambient | kubectl apply -f -</code></pre>
+          
+          <p>验证Waypoint代理部署：</p>
+          
+          <pre><code class="language-bash"># 检查Waypoint代理Pod状态
+kubectl get pods -n demo-ambient -l istio.io/gateway-name=httpbin-waypoint
+
+# 查看Waypoint代理配置
+kubectl get gateway -n demo-ambient httpbin-waypoint -o yaml</code></pre>
+          
+          <p>上述配置创建了一个名为httpbin-waypoint的Waypoint代理，关联到httpbin服务账号。</p>
+          
+          <h3>配置L7策略</h3>
+          
+          <p>一旦Waypoint代理启用，您可以使用Istio的VirtualService、DestinationRule等资源配置L7策略：</p>
+          
+          <pre><code class="language-yaml"># 配置路由规则
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: httpbin-routes
+  namespace: demo-ambient
+spec:
+  hosts:
+  - httpbin
+  http:
+  - match:
+    - uri:
+        prefix: /status
+    route:
+    - destination:
+        host: httpbin
+        port:
+          number: 8000</code></pre>
+          
+          <h3>授权策略</h3>
+          
+          <p>配置Waypoint代理的授权策略：</p>
+          
+          <pre><code class="language-yaml"># 配置授权策略
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: httpbin-policy
+  namespace: demo-ambient
+spec:
+  selector:
+    matchLabels:
+      app: httpbin
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/default/sa/sleep"]
+    to:
+    - operation:
+        methods: ["GET"]</code></pre>
+        </div>
+
+        <div class="content-section" id="use-cases">
+          <h2>应用场景</h2>
+          
+          <p>Waypoint代理适用于多种场景，特别是需要高级流量管理和安全功能的服务。</p>
+          
+          <h3>适用场景</h3>
+          
+          <ul>
+            <li><strong>API网关</strong>：需要路由、转换、认证等高级功能的API服务</li>
+            <li><strong>微服务通信</strong>：需要细粒度流量控制的微服务</li>
+            <li><strong>安全敏感服务</strong>：需要强授权策略的服务</li>
+            <li><strong>灰度发布</strong>：需要流量分割和渐进式发布的服务</li>
+            <li><strong>A/B测试</strong>：需要基于请求属性路由流量的场景</li>
+          </ul>
+          
+          <h3>不适用场景</h3>
+          
+          <ul>
+            <li><strong>纯L4服务</strong>：只需要mTLS和基本连接的服务</li>
+            <li><strong>极低延迟要求</strong>：对延迟极其敏感的服务</li>
+            <li><strong>资源受限环境</strong>：资源极其有限且不需要L7功能的环境</li>
+          </ul>
+        </div>
+
+        <div class="content-section" id="best-practices">
+          <h2>最佳实践</h2>
+          
+          <p>以下是使用Waypoint代理的一些最佳实践和建议：</p>
+          
+          <h3>资源配置</h3>
+          
+          <ul>
+            <li>根据流量负载适当配置Waypoint代理的CPU和内存资源</li>
+            <li>对于高流量服务，考虑使用HorizontalPodAutoscaler自动扩展Waypoint</li>
+            <li>为关键服务配置PodDisruptionBudget确保可用性</li>
+          </ul>
+          
+          <h3>监控和可观察性</h3>
+          
+          <ul>
+            <li>配置Waypoint代理的指标收集和日志记录</li>
+            <li>设置关键指标的告警（延迟、错误率、资源使用等）</li>
+            <li>使用分布式追踪了解请求在Waypoint中的处理情况</li>
+          </ul>
+          
+          <h3>安全考虑</h3>
+          
+          <ul>
+            <li>为每个Waypoint代理使用专用的服务账号</li>
+            <li>实施最小权限原则，限制Waypoint代理的权限</li>
+            <li>定期更新Istio和Waypoint代理版本，修复安全漏洞</li>
+          </ul>
+          
+          <h3>性能优化</h3>
+          
+          <ul>
+            <li>只为需要L7功能的服务启用Waypoint代理</li>
+            <li>合理设置超时和重试策略，避免资源浪费</li>
+            <li>使用亲和性和反亲和性规则优化Waypoint代理的部署位置</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <p>Istio Ambient指南 &copy; 2025</p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- 延迟加载非关键JS -->
+  <script src="../js/main.js" defer></script>
+  
+  <!-- 骨架屏加载脚本 -->
+  <script>
+    // 标记页面正在加载
+    document.body.classList.add('loading');
+    
+    // 页面内容加载完成后隐藏骨架屏
+    window.addEventListener('load', function() {
+      // 给骨架屏一个短暂的延迟，确保CSS已完全应用
+      setTimeout(function() {
+        document.getElementById('skeleton-screen').classList.add('loaded');
+        document.body.classList.remove('loading');
+        document.body.classList.add('loaded');
+      }, 300);
+    });
+    
+    // 如果页面加载时间过长，也要隐藏骨架屏（最多等待3秒）
+    setTimeout(function() {
+      document.getElementById('skeleton-screen').classList.add('loaded');
+      document.body.classList.remove('loading');
+      document.body.classList.add('loaded');
+    }, 3000);
+  </script>
+  
+  <!-- 加载优化脚本 -->
+  <script>
+    // 用于处理CSS预加载的辅助函数
+    !function(n){"use strict";n.loadCSS||(n.loadCSS=function(){});var o=loadCSS.relpreload={};if(o.support=function(){var e;try{e=n.document.createElement("link").relList.supports("preload")}catch(t){e=!1}return function(){return e}}(),o.bindMediaToggle=function(t){var e=t.media||"all";function a(){t.addEventListener?t.removeEventListener("load",a):t.attachEvent&&t.detachEvent("onload",a),t.setAttribute("onload",null),t.media=e}t.addEventListener?t.addEventListener("load",a):t.attachEvent&&t.attachEvent("onload",a),setTimeout(function(){t.rel="stylesheet",t.media="only x"}),setTimeout(a,3e3)},o.poly=function(){if(!o.support())for(var t=n.document.getElementsByTagName("link"),e=0;e<t.length;e++){var a=t[e];"preload"!==a.rel||"style"!==a.getAttribute("as")||a.getAttribute("data-loadcss")||(a.setAttribute("data-loadcss",!0),o.bindMediaToggle(a))}},!o.support()){o.poly();var t=n.setInterval(o.poly,500);n.addEventListener?n.addEventListener("load",function(){o.poly(),n.clearInterval(t)}):n.attachEvent&&n.attachEvent("onload",function(){o.poly(),n.clearInterval(t)})}"undefined"!=typeof exports?exports.loadCSS=loadCSS:n.loadCSS=loadCSS}("undefined"!=typeof global?global:this);
+  </script>
+</body>
+</html>

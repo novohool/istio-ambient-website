@@ -1,0 +1,63 @@
+<!-- 骨架屏模板 -->
+<div class="skeleton-screen" id="skeleton-screen">
+  <div class="skeleton-header">
+    <div class="skeleton-nav">
+      <div class="skeleton-logo"></div>
+      <div class="skeleton-menu">
+        <div class="skeleton-menu-item"></div>
+        <div class="skeleton-menu-item"></div>
+        <div class="skeleton-menu-item"></div>
+        <div class="skeleton-menu-item"></div>
+        <div class="skeleton-menu-item"></div>
+      </div>
+    </div>
+  </div>
+  <div class="skeleton-content">
+    <div class="skeleton-title"></div>
+    <div class="skeleton-text"></div>
+    <div class="skeleton-text short"></div>
+    <div class="skeleton-text"></div>
+    
+    <div class="skeleton-title"></div>
+    <div class="skeleton-grid">
+      <div class="skeleton-card"></div>
+      <div class="skeleton-card"></div>
+      <div class="skeleton-card"></div>
+      <div class="skeleton-card"></div>
+    </div>
+    
+    <div class="skeleton-title"></div>
+    <div class="skeleton-text"></div>
+    <div class="skeleton-text short"></div>
+    <div class="skeleton-image"></div>
+    
+    <div class="skeleton-title"></div>
+    <div class="skeleton-text"></div>
+    <div class="skeleton-text"></div>
+    <div class="skeleton-text short"></div>
+  </div>
+  <div class="skeleton-footer"></div>
+</div>
+
+<!-- 骨架屏加载脚本 -->
+<script>
+  // 标记页面正在加载
+  document.body.classList.add('loading');
+  
+  // 页面内容加载完成后隐藏骨架屏
+  window.addEventListener('load', function() {
+    // 给骨架屏一个短暂的延迟，确保CSS已完全应用
+    setTimeout(function() {
+      document.getElementById('skeleton-screen').classList.add('loaded');
+      document.body.classList.remove('loading');
+      document.body.classList.add('loaded');
+    }, 300);
+  });
+  
+  // 如果页面加载时间过长，也要隐藏骨架屏（最多等待3秒）
+  setTimeout(function() {
+    document.getElementById('skeleton-screen').classList.add('loaded');
+    document.body.classList.remove('loading');
+    document.body.classList.add('loaded');
+  }, 3000);
+</script>

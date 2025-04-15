@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Istio Ambient指南</title>
+  <!-- 关键CSS内联，确保页面渲染不被阻塞 -->
+  <style>
+    /* 关键渲染路径CSS */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: #2d3748;
+      background-color: #f8f9fa;
+    }
+    .container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 15px;
+    }
+    header {
+      background-color: #2c5282;
+      color: white;
+      padding: 1rem 0;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      width: 100%;
+    }
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: white;
+      text-decoration: none;
+    }
+    .nav-links {
+      display: flex;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .nav-links li {
+      margin-left: 1.5rem;
+    }
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+    .nav-links a:hover, .nav-links a.active {
+      color: #90cdf4;
+    }
+    /* SVG尺寸控制 */
+    .diagram {
+      max-width: 70%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      background-color: #fff;
+      padding: 15px;
+    }
+    .intro-image img {
+      max-width: 70%;
+      height: auto;
+    }
+    
+    /* 骨架屏基本样式 - 内联关键部分 */
+    .skeleton-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #f8f9fa;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      transition: opacity 0.3s ease-out;
+    }
+    .skeleton-header {
+      height: 60px;
+      background-color: #2c5282;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .skeleton-nav {
+      display: flex;
+      padding: 15px 5%;
+    }
+    .skeleton-logo {
+      width: 180px;
+      height: 30px;
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+    .skeleton-menu {
+      display: flex;
+      margin-left: auto;
+    }
+    .skeleton-menu-item {
+      width: 80px;
+      height: 30px;
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      margin-left: 15px;
+    }
+    body.loading {
+      overflow: hidden;
+    }
+    body.loading .page-content {
+      opacity: 0;
+    }
+    @keyframes pulse {
+      0% { opacity: 0.6; }
+      50% { opacity: 0.8; }
+      100% { opacity: 0.6; }
+    }
+    .skeleton-logo, .skeleton-menu-item {
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    
+    /* 海报风格首页样式 */
+    .poster-header {
+      text-align: center;
+      padding: 3rem 0;
+      background: linear-gradient(135deg, #2c5282 0%, #4299e1 100%);
+      color: white;
+      margin-bottom: 2rem;
+    }
+    
+    .poster-header h1 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      font-weight: 700;
+    }
+    
+    .poster-header p {
+      font-size: 1.5rem;
+      max-width: 800px;
+      margin: 0 auto;
+      opacity: 0.9;
+    }
+    
+    .poster-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin: 3rem 0;
+    }
+    
+    .poster-item {
+      background-color: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .poster-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .poster-image {
+      width: 100%;
+      height: 200px;
+      background-color: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    
+    .poster-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .poster-content {
+      padding: 1.5rem;
+    }
+    
+    .poster-content h3 {
+      margin-top: 0;
+      font-size: 1.5rem;
+      color: #2c5282;
+    }
+    
+    .poster-content p {
+      color: #4a5568;
+      margin-bottom: 1.5rem;
+    }
+    
+    .poster-cta {
+      text-align: center;
+      margin: 4rem 0;
+      padding: 3rem;
+      background-color: #f1f5f9;
+      border-radius: 8px;
+    }
+    
+    .poster-cta h2 {
+      font-size: 2rem;
+      color: #2c5282;
+      margin-bottom: 1rem;
+    }
+    
+    .poster-cta p {
+      font-size: 1.2rem;
+      max-width: 700px;
+      margin: 0 auto 2rem;
+      color: #4a5568;
+    }
+    
+    .button-group {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    
+    /* 代码块样式 - 统一背景颜色为#f1f5f9 */
+    pre {
+      background-color: #f1f5f9;
+      padding: 1rem;
+      border-radius: 5px;
+      overflow-x: auto;
+      margin: 1.5rem 0;
+      font-family: 'Courier New', monospace;
+    }
+    
+    code {
+      font-family: 'Courier New', monospace;
+      background-color: #f1f5f9;
+      padding: 0.2rem 0.4rem;
+      border-radius: 3px;
+    }
+    
+    .code-example {
+      margin: 2rem 0;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .code-input {
+      width: 100%;
+      padding: 1rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 5px 5px 0 0;
+      font-family: 'Courier New', monospace;
+      background-color: #f1f5f9;
+      resize: vertical;
+      min-height: 100px;
+    }
+    
+    .code-output {
+      padding: 1rem;
+      background-color: #f1f5f9;
+      border-radius: 0 0 5px 5px;
+      font-family: 'Courier New', monospace;
+      white-space: pre-wrap;
+      border-top: 1px solid #e2e8f0;
+    }
+    
+    .run-code-button {
+      display: block;
+      width: 100%;
+      padding: 0.5rem;
+      background-color: #2c5282;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    
+    .run-code-button:hover {
+      background-color: #2b6cb0;
+    }
+    
+    .cmd {
+      color: #2c5282;
+      font-weight: bold;
+    }
+    
+    .kwd {
+      color: #805ad5;
+    }
+    
+    .ns {
+      color: #dd6b20;
+    }
+    
+    /* 移动端菜单样式 */
+    @media (max-width: 768px) {
+      .navbar {
+        flex-direction: column;
+        align-items: flex-start;
+        position: relative;
+        padding: 10px 0;
+        width: 100%;
+      }
+      
+      .logo {
+        margin-bottom: 0;
+        padding-right: 50px;
+      }
+      
+      .menu-toggle {
+        display: block;
+        position: absolute;
+        top: 50%;
+        right: 15px;
+        transform: translateY(-50%);
+        cursor: pointer;
+        z-index: 1000;
+        width: 30px;
+        height: 30px;
+        padding: 5px;
+      }
+      
+      .menu-toggle span {
+        display: block;
+        width: 20px;
+        height: 2px;
+        background-color: white;
+        margin: 4px auto;
+        transition: all 0.3s ease;
+      }
+      
+      .menu-toggle.active span:nth-child(1) {
+        transform: rotate(45deg) translate(4px, 4px);
+      }
+      
+      .menu-toggle.active span:nth-child(2) {
+        opacity: 0;
+      }
+      
+      .menu-toggle.active span:nth-child(3) {
+        transform: rotate(-45deg) translate(4px, -4px);
+      }
+      
+      .nav-links {
+        position: fixed;
+        top: var(--header-height, 60px);
+        left: 0;
+        right: 0;
+        width: 100vw;
+        display: none;
+        flex-direction: column;
+        background-color: #2c5282;
+        padding: 0;
+        margin: 0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 999;
+        transform: translateX(0);
+      }
+      
+      .nav-links.active {
+        display: flex !important;
+      }
+      
+      .nav-links li {
+        margin: 0;
+        width: 100%;
+        text-align: left;
+      }
+      
+      .nav-links li a {
+        display: block;
+        padding: 12px 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        color: white !important;
+      }
+      
+      .nav-links li:last-child a {
+        border-bottom: none;
+      }
+
+      /* 移除 container 对导航菜单的限制 */
+      header .container {
+        padding: 0;
+        width: 100%;
+        max-width: none;
+      }
+      
+      /* 调整 logo 和菜单按钮的位置 */
+      header .container .navbar {
+        padding: 10px 15px;
+      }
+    }
+
+    /* 特别针对 iPhone SE 等小屏幕设备的优化 */
+    @media (max-width: 375px) {
+      header .container .navbar {
+        padding: 8px 10px;
+      }
+      
+      .logo {
+        font-size: 1.2rem;
+        padding-right: 40px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      
+      .menu-toggle {
+        right: 10px;
+        width: 25px;
+        height: 25px;
+      }
+      
+      .menu-toggle span {
+        width: 18px;
+        margin: 3px auto;
+      }
+      
+      .nav-links li a {
+        padding: 10px 12px;
+        font-size: 0.95rem;
+      }
+    }
+
+    /* 确保移动端菜单在打开时显示在其他内容之上 */
+    @media (max-width: 768px) {
+      header {
+        position: relative;
+        z-index: 1001;
+      }
+
+      .page-content {
+        position: relative;
+        z-index: 1;
+      }
+
+      /* 强制显示激活的导航菜单 */
+      .nav-links.active {
+        display: flex !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+      }
+    }
+  </style>
+  
+  <!-- 预加载骨架屏CSS -->
+  <link rel="preload" href="../css/skeleton.css" as="style">
+  <link rel="stylesheet" href="../css/skeleton.css">
+  
+  <!-- 预加载CSS文件 -->
+  <link rel="preload" href="../css/styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="../css/interactive.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="../css/responsive.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="../css/svg-styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  
+  <!-- 回退方案，确保CSS最终会加载 -->
+  <noscript>
+    <link rel="stylesheet" href="../css/skeleton.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/interactive.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="../css/svg-styles.css">
+  </noscript>
+  
+  <!-- 预加载关键JS文件 -->
+  <link rel="preload" href="../js/main.js" as="script">
+  <link rel="preload" href="../js/interactive.js" as="script">
+  
+  <!-- 异步加载非关键CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css" media="print" onload="this.media='all'">
+  
+  <!-- 异步加载JS库 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js" async></script>
+</head>
+<body class="loading">
+  <!-- 骨架屏 -->
+  <div class="skeleton-screen" id="skeleton-screen">
+    <div class="skeleton-header">
+      <div class="skeleton-nav">
+        <div class="skeleton-logo"></div>
+        <div class="skeleton-menu">
+          <div class="skeleton-menu-item"></div>
+          <div class="skeleton-menu-item"></div>
+          <div class="skeleton-menu-item"></div>
+          <div class="skeleton-menu-item"></div>
+          <div class="skeleton-menu-item"></div>
+        </div>
+      </div>
+    </div>
+    <div class="skeleton-content">
+      <div class="skeleton-title"></div>
+      <div class="skeleton-text"></div>
+      <div class="skeleton-text short"></div>
+      <div class="skeleton-text"></div>
+      
+      <div class="skeleton-title"></div>
+      <div class="skeleton-grid">
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+      </div>
+      
+      <div class="skeleton-title"></div>
+      <div class="skeleton-text"></div>
+      <div class="skeleton-text short"></div>
+      <div class="skeleton-image"></div>
+      
+      <div class="skeleton-title"></div>
+      <div class="skeleton-text"></div>
+      <div class="skeleton-text"></div>
+      <div class="skeleton-text short"></div>
+    </div>
+    <div class="skeleton-footer"></div>
+  </div>
+
+  <!-- 页面实际内容 -->
+  <div class="page-content">
+    <header>
+      <div class="container">
+        <nav class="navbar">
+          <a href="index.html" class="logo">Istio Ambient指南</a>
+          <div class="menu-toggle" onclick="toggleMenu(event)">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <ul class="nav-links">
+            <li><a href="index.html" class="active">首页</a></li>
+            <li><a href="basic-concepts.html">基础概念</a></li>
+            <li><a href="architecture-comparison.html">架构对比</a></li>
+            <li><a href="waypoint-proxy.html">Waypoint代理</a></li>
+            <li><a href="practical-guide.html">实践指南</a></li>
+            <li><a href="troubleshooting.html">故障排除</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main class="homepage">
+      <!-- 海报风格标题 -->
+      <div class="poster-header">
+        <div class="container">
+          <h1>Istio Ambient模式指南</h1>
+          <p>全面了解Istio的下一代服务网格架构</p>
+        </div>
+      </div>
+
+      <div class="container">
+        <!-- 简介部分 -->
+        <section class="intro-section">
+          <div class="intro-content">
+            <div class="intro-text">
+              <h2>简介</h2>
+              <p>Istio是一个功能强大的服务网格平台，它为微服务架构提供了流量管理、安全性和可观察性等关键功能。随着Istio的发展，它引入了两种主要的数据平面模式：传统的Sidecar模式和新的Ambient模式。</p>
+              
+              <p>本指南旨在提供Istio Ambient模式的全面介绍，从基本概念到实际操作，帮助您理解Ambient模式的工作原理，并指导您在实际环境中部署和使用它。无论您是服务网格的新手，还是希望从Sidecar模式迁移到Ambient模式的用户，本指南都将为您提供所需的知识和实践经验。</p>
+            </div>
+            <div class="svg-container">
+              <img src="../images/ambient-architecture.svg" alt="Ambient模式架构概览" class="diagram">
+            </div>
+          </div>
+        </section>
+
+        <!-- 特点部分 - 海报风格网格 -->
+        <section class="features-section">
+          <h2>Ambient模式的主要特点</h2>
+          <div class="poster-grid">
+            <div class="poster-item">
+              <div class="poster-image">
+                <div class="feature-icon">🔄</div>
+              </div>
+              <div class="poster-content">
+                <h3>无侵入性部署</h3>
+                <p>无需修改应用Pod或重启服务，透明接入服务网格</p>
+              </div>
+            </div>
+            <div class="poster-item">
+              <div class="poster-image">
+                <div class="feature-icon">📊</div>
+              </div>
+              <div class="poster-content">
+                <h3>资源效率</h3>
+                <p>显著降低CPU和内存消耗，特别是在大规模部署中</p>
+              </div>
+            </div>
+            <div class="poster-item">
+              <div class="poster-image">
+                <div class="feature-icon">🛡️</div>
+              </div>
+              <div class="poster-content">
+                <h3>分层安全</h3>
+                <p>L4和L7层安全分离，按需启用高级安全功能</p>
+              </div>
+            </div>
+            <div class="poster-item">
+              <div class="poster-image">
+                <div class="feature-icon">🚀</div>
+              </div>
+              <div class="poster-content">
+                <h3>简化运维</h3>
+                <p>独立升级网格组件，无需重启应用服务</p>
+              </div>
+            </div>
+            <div class="poster-item">
+              <div class="poster-image">
+                <div class="feature-icon">🔍</div>
+              </div>
+              <div class="poster-content">
+                <h3>可观察性</h3>
+                <p>提供全面的监控和追踪能力，了解服务行为</p>
+              </div>
+            </div>
+            <div class="poster-item">
+              <div class="poster-image">
+                <div class="feature-icon">🔄</div>
+              </div>
+              <div class="poster-content">
+                <h3>平滑迁移</h3>
+                <p>支持与Sidecar模式共存，实现渐进式迁移</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 对比部分 - 分开展示SVG -->
+        <section class="comparison-section">
+          <h2>Ambient模式与Sidecar模式对比</h2>
+          <div class="svg-grid">
+            <div class="svg-grid-item">
+              <img src="../images/ambient-vs-sidecar.svg" alt="Ambient与Sidecar模式对比" class="diagram">
+              <p class="diagram-title">Ambient与Sidecar模式架构对比</p>
+            </div>
+            <div class="svg-grid-item">
+              <img src="../images/resource-comparison.svg" alt="资源消耗对比" class="diagram">
+              <p class="diagram-title">Ambient与Sidecar模式资源消耗对比</p>
+            </div>
+          </div>
+          <div class="comparison-text">
+            <p>Ambient模式采用分层架构，将服务网格功能从应用Pod中分离出来，通过节点级别的ztunnel组件和可选的服务级别Waypoint代理提供服务网格功能。相比传统的Sidecar模式，Ambient模式具有更低的资源消耗、更简单的部署和管理方式，以及更灵活的功能启用机制。</p>
+            <a href="architecture-comparison.html" class="button">查看详细对比</a>
+          </div>
+        </section>
+
+        <!-- 快速开始部分 -->
+        <section class="getting-started-section">
+          <h2>快速开始</h2>
+          <div class="code-example">
+            <h3>安装Ambient模式</h3>
+            <pre><code class="language-bash">curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.18.0 sh -
+cd istio-1.18.0
+./bin/istioctl install --set profile=ambient</code></pre>
+            
+            <h3>启用Ambient模式</h3>
+            <pre><code class="language-bash">kubectl create namespace demo-ambient
+kubectl label namespace demo-ambient istio.io/dataplane-mode=ambient</code></pre>
+            
+            <h3>部署测试应用</h3>
+            <pre><code class="language-bash">kubectl apply -f samples/httpbin/httpbin.yaml -n demo-ambient
+kubectl apply -f samples/sleep/sleep.yaml -n demo-ambient</code></pre>
+            
+            <h3>测试连通性</h3>
+            <pre><code class="language-bash">kubectl exec -n demo-ambient -c sleep \
+  $(kubectl get pod -n demo-ambient -l app=sleep -o jsonpath='{.items[0].metadata.name}') \
+  -- curl -s http://httpbin:8000/headers</code></pre>
+            
+            <a href="practical-guide.html" class="button">查看完整指南</a>
+          </div>
+        </section>
+
+        <!-- 海报风格CTA部分 -->
+        <section class="poster-cta">
+          <h2>准备好深入了解Istio Ambient模式了吗？</h2>
+          <p>浏览我们的详细指南，了解如何在您的环境中部署和使用Ambient模式。</p>
+          <div class="button-group">
+            <a href="basic-concepts.html" class="button">开始学习</a>
+            <a href="practical-guide.html" class="button button-outline">实践指南</a>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer>
+      <div class="container">
+        <p>Istio Ambient指南 &copy; 2025</p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- 内联关键 JavaScript -->
+  <script>
+    // 菜单切换函数
+    function toggleMenu(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      
+      const menuToggle = document.querySelector('.menu-toggle');
+      const navLinks = document.querySelector('.nav-links');
+      
+      menuToggle.classList.toggle('active');
+      navLinks.classList.toggle('active');
+      
+      // 添加点击外部关闭菜单的功能
+      if (menuToggle.classList.contains('active')) {
+        document.addEventListener('click', closeMenu);
+      } else {
+        document.removeEventListener('click', closeMenu);
+      }
+    }
+    
+    // 关闭菜单的函数
+    function closeMenu(event) {
+      const header = document.querySelector('header');
+      if (!header.contains(event.target)) {
+        const menuToggle = document.querySelector('.menu-toggle');
+        const navLinks = document.querySelector('.nav-links');
+        menuToggle.classList.remove('active');
+        navLinks.classList.remove('active');
+        document.removeEventListener('click', closeMenu);
+      }
+    }
+    
+    // 阻止菜单内部点击事件冒泡
+    document.querySelector('.nav-links').addEventListener('click', function(event) {
+      event.stopPropagation();
+    });
+  </script>
+
+  <!-- 加载其他 JavaScript -->
+  <script src="../js/main.js"></script>
+  <script src="../js/interactive.js"></script>
+  
+  <!-- 骨架屏加载脚本 -->
+  <script>
+    // 标记页面正在加载
+    document.body.classList.add('loading');
+    
+    // 页面内容加载完成后隐藏骨架屏
+    window.addEventListener('load', function() {
+      // 给骨架屏一个短暂的延迟，确保CSS已完全应用
+      setTimeout(function() {
+        document.getElementById('skeleton-screen').classList.add('loaded');
+        document.body.classList.remove('loading');
+        document.body.classList.add('loaded');
+      }, 300);
+    });
+    
+    // 如果页面加载时间过长，也要隐藏骨架屏（最多等待3秒）
+    setTimeout(function() {
+      document.getElementById('skeleton-screen').classList.add('loaded');
+      document.body.classList.remove('loading');
+      document.body.classList.add('loaded');
+    }, 3000);
+  </script>
+  
+  <!-- 加载优化脚本 -->
+  <script>
+    // 用于处理CSS预加载的辅助函数
+    !function(n){"use strict";n.loadCSS||(n.loadCSS=function(){});var o=loadCSS.relpreload={};if(o.support=function(){var e;try{e=n.document.createElement("link").relList.supports("preload")}catch(t){e=!1}return function(){return e}}(),o.bindMediaToggle=function(t){var e=t.media||"all";function a(){t.addEventListener?t.removeEventListener("load",a):t.attachEvent&&t.detachEvent("onload",a),t.setAttribute("onload",null),t.media=e}t.addEventListener?t.addEventListener("load",a):t.attachEvent&&t.attachEvent("onload",a),setTimeout(function(){t.rel="stylesheet",t.media="only x"}),setTimeout(a,3e3)},o.poly=function(){if(!o.support())for(var t=n.document.getElementsByTagName("link"),e=0;e<t.length;e++){var a=t[e];"preload"!==a.rel||"style"!==a.getAttribute("as")||a.getAttribute("data-loadcss")||(a.setAttribute("data-loadcss",!0),o.bindMediaToggle(a))}},!o.support()){o.poly();var t=n.setInterval(o.poly,500);n.addEventListener?n.addEventListener("load",function(){o.poly(),n.clearInterval(t)}):n.attachEvent&&n.attachEvent("onload",function(){o.poly(),n.clearInterval(t)})}"undefined"!=typeof exports?exports.loadCSS=loadCSS:n.loadCSS=loadCSS}("undefined"!=typeof global?global:this);
+  </script>
+</body>
+</html>

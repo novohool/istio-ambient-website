@@ -1,0 +1,260 @@
+.image-comparison {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  margin: 20px auto;
+  overflow: hidden;
+}
+
+.comparison-container {
+  position: relative;
+  width: 100%;
+  height: 400px;
+}
+
+.before-image,
+.after-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.before-image {
+  width: 50%;
+  z-index: 2;
+}
+
+.after-image {
+  z-index: 1;
+}
+
+.before-image img,
+.after-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.comparison-slider {
+  position: absolute;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0);
+  outline: none;
+  margin: 0;
+  transition: all 0.2s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 3;
+}
+
+.comparison-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 3px;
+  height: 100%;
+  background: #fff;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  cursor: ew-resize;
+}
+
+.comparison-slider::-moz-range-thumb {
+  width: 3px;
+  height: 100%;
+  background: #fff;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  cursor: ew-resize;
+}
+
+.slider-button {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  top: 50%;
+  transform: translateY(-50%);
+  left: 50%;
+  margin-left: -15px;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.slider-button::before,
+.slider-button::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 2px;
+  background: #333;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.slider-button::before {
+  left: 5px;
+  transform: translateY(-50%) rotate(-45deg);
+}
+
+.slider-button::after {
+  right: 5px;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.tab-container {
+  margin: 20px 0;
+}
+
+.tab-buttons {
+  display: flex;
+  border-bottom: 1px solid #ddd;
+}
+
+.tab-buttons button {
+  padding: 10px 20px;
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  border-bottom: none;
+  margin-right: 5px;
+  cursor: pointer;
+  border-radius: 5px 5px 0 0;
+  transition: all 0.3s;
+}
+
+.tab-buttons button.active {
+  background: #2c5282;
+  color: white;
+  border-color: #2c5282;
+}
+
+.tab-content {
+  display: none;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-top: none;
+  background: white;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+.code-example {
+  margin: 20px 0;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+}
+
+.code-input {
+  width: 100%;
+  height: 100px;
+  padding: 10px;
+  font-family: monospace;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.code-output {
+  width: 100%;
+  min-height: 50px;
+  padding: 10px;
+  font-family: monospace;
+  background: #282c34;
+  color: #abb2bf;
+  border-radius: 5px;
+  white-space: pre-wrap;
+}
+
+.code-output .cmd {
+  color: #61afef;
+}
+
+.code-output .kwd {
+  color: #c678dd;
+}
+
+.code-output .ns {
+  color: #98c379;
+}
+
+.run-code-button {
+  padding: 8px 16px;
+  background: #2c5282;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 10px 0;
+  transition: background 0.3s;
+}
+
+.run-code-button:hover {
+  background: #1a365d;
+}
+
+.animate-svg-button {
+  padding: 8px 16px;
+  background: #2c5282;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 10px 0;
+  transition: background 0.3s;
+}
+
+.animate-svg-button:hover {
+  background: #1a365d;
+}
+
+svg.animated path,
+svg.animated line,
+svg.animated polyline {
+  animation: dash 2s linear forwards;
+}
+
+@keyframes dash {
+  from {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+  }
+  to {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 0;
+  }
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .tab-buttons {
+    flex-direction: column;
+  }
+  
+  .tab-buttons button {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 5px;
+    border: 1px solid #ddd;
+  }
+  
+  .comparison-container {
+    height: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .comparison-container {
+    height: 200px;
+  }
+}

@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>基础概念 - Istio Ambient指南</title>
+  <!-- 关键CSS内联 -->
+  <style>
+    /* 关键渲染路径CSS */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: #2d3748;
+      background-color: #f8f9fa;
+    }
+    .container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 15px;
+    }
+    header {
+      background-color: #2c5282;
+      color: white;
+      padding: 1rem 0;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: white;
+      text-decoration: none;
+    }
+    .nav-links {
+      display: flex;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .nav-links li {
+      margin-left: 1.5rem;
+    }
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+    .nav-links a:hover, .nav-links a.active {
+      color: #90cdf4;
+    }
+    
+    /* 骨架屏基本样式 - 内联关键部分 */
+    .skeleton-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #f8f9fa;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      transition: opacity 0.3s ease-out;
+    }
+    .skeleton-header {
+      height: 60px;
+      background-color: #2c5282;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .skeleton-nav {
+      display: flex;
+      padding: 15px 5%;
+    }
+    .skeleton-logo {
+      width: 180px;
+      height: 30px;
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+    .skeleton-menu {
+      display: flex;
+      margin-left: auto;
+    }
+    .skeleton-menu-item {
+      width: 80px;
+      height: 30px;
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      margin-left: 15px;
+    }
+    body.loading {
+      overflow: hidden;
+    }
+    body.loading .page-content {
+      opacity: 0;
+    }
+    @keyframes pulse {
+      0% { opacity: 0.6; }
+      50% { opacity: 0.8; }
+      100% { opacity: 0.6; }
+    }
+    .skeleton-logo, .skeleton-menu-item {
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+  </style>
+  
+  <!-- 预加载骨架屏CSS -->
+  <link rel="preload" href="../css/skeleton.css" as="style">
+  <link rel="stylesheet" href="../css/skeleton.css">
+  
+  <!-- 预加载CSS文件 -->
+  <link rel="preload" href="../css/styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="../css/svg-styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="../css/responsive.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  
+  <!-- 回退方案 -->
+  <noscript>
+    <link rel="stylesheet" href="../css/skeleton.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/svg-styles.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+  </noscript>
+  
+  <!-- 预加载关键JS文件 -->
+  <link rel="preload" href="../js/main.js" as="script">
+</head>
+<body class="loading">
+  <!-- 骨架屏 -->
+  <div class="skeleton-screen" id="skeleton-screen">
+    <div class="skeleton-header">
+      <div class="skeleton-nav">
+        <div class="skeleton-logo"></div>
+        <div class="skeleton-menu">
+          <div class="skeleton-menu-item"></div>
+          <div class="skeleton-menu-item"></div>
+          <div class="skeleton-menu-item"></div>
+          <div class="skeleton-menu-item"></div>
+          <div class="skeleton-menu-item"></div>
+        </div>
+      </div>
+    </div>
+    <div class="skeleton-content">
+      <div class="skeleton-sidebar"></div>
+      <div class="skeleton-main">
+        <div class="skeleton-title"></div>
+        <div class="skeleton-text"></div>
+        <div class="skeleton-text short"></div>
+        <div class="skeleton-text"></div>
+        
+        <div class="skeleton-subtitle"></div>
+        <div class="skeleton-text"></div>
+        <div class="skeleton-text short"></div>
+        <div class="skeleton-image"></div>
+        
+        <div class="skeleton-subtitle"></div>
+        <div class="skeleton-text"></div>
+        <div class="skeleton-text"></div>
+        <div class="skeleton-text short"></div>
+      </div>
+    </div>
+    <div class="skeleton-footer"></div>
+  </div>
+
+  <!-- 页面实际内容 -->
+  <div class="page-content">
+    <header>
+      <div class="container">
+        <nav class="navbar">
+          <a href="index.html" class="logo">Istio Ambient指南</a>
+          <div class="menu-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <ul class="nav-links">
+            <li><a href="index.html">首页</a></li>
+            <li><a href="basic-concepts.html" class="active">基础概念</a></li>
+            <li><a href="architecture-comparison.html">架构对比</a></li>
+            <li><a href="waypoint-proxy.html">Waypoint代理</a></li>
+            <li><a href="practical-guide.html">实践指南</a></li>
+            <li><a href="troubleshooting.html">故障排除</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <aside class="sidebar">
+        <h2>目录</h2>
+        <ul class="sidebar-nav">
+          <li><a href="index.html#introduction">简介</a></li>
+          <li><a href="#ambient-mode" class="active">Istio Ambient模式概述</a></li>
+          <li><a href="#components">Ambient模式架构组件</a></li>
+          <li><a href="#benefits">Ambient模式优势</a></li>
+          <li><a href="#limitations">限制与考量</a></li>
+          <li><a href="#use-cases">适用场景</a></li>
+        </ul>
+      </aside>
+
+      <section class="content">
+        <div class="content-header">
+          <h1>基础概念</h1>
+        </div>
+
+        <div class="content-section" id="ambient-mode">
+          <h2>Istio Ambient模式概述</h2>
+          <p>Ambient模式是Istio服务网格的一种新型部署模式，它提供了一种无侵入式的方法来实现服务网格功能，而无需在每个工作负载中注入Sidecar代理。</p>
+          
+          <p>在传统的Sidecar模式中，每个应用Pod都会被注入一个Envoy代理容器，这个代理与应用容器共享网络命名空间，拦截所有进出应用的流量。虽然这种方法功能强大，但也带来了资源开销、部署复杂性和应用启动延迟等问题。</p>
+          
+          <p>相比之下，Ambient模式采用了一种分层架构，将服务网格功能从应用Pod中分离出来，移至节点级别和专用的Waypoint代理中。这种架构减少了对应用的侵入性，降低了资源消耗，并简化了服务网格的管理。</p>
+          
+          <div class="svg-container">
+            <img src="../images/ambient-architecture.svg" alt="Ambient模式架构图" class="diagram">
+            <p class="diagram-title">图1: Istio Ambient模式架构概览</p>
+          </div>
+        </div>
+
+        <div class="content-section" id="components">
+          <h2>Ambient模式架构组件</h2>
+          <p>Ambient模式的架构由以下关键组件组成：</p>
+          
+          <h3>1. ztunnel (零信任隧道)</h3>
+          <p>ztunnel是一个轻量级的节点级代理，以DaemonSet形式部署在每个Kubernetes节点上。它负责：</p>
+          <ul>
+            <li>L4层流量处理：提供基本的流量管理功能</li>
+            <li>mTLS加密：确保服务间通信的安全性</li>
+            <li>身份验证：验证服务身份</li>
+            <li>遥测数据收集：收集基本的流量统计信息</li>
+          </ul>
+          <p>ztunnel使用eBPF或CNI技术拦截流量，对应用完全透明，不需要修改应用容器或Pod配置。</p>
+          
+          <h3>2. Waypoint代理</h3>
+          <p>Waypoint代理是一个专用的Envoy代理，以独立Pod形式部署，负责处理L7层（应用层）功能：</p>
+          <ul>
+            <li>高级流量管理：路由、负载均衡、流量分割等</li>
+            <li>授权策略：细粒度的访问控制</li>
+            <li>故障注入：用于测试服务弹性</li>
+            <li>高级遥测：详细的请求级别指标和跟踪</li>
+          </ul>
+          <p>Waypoint代理是可选的，只有需要L7功能的服务才需要配置。</p>
+          
+          <h3>3. istiod控制平面</h3>
+          <p>istiod仍然是Ambient模式的控制平面，负责：</p>
+          <ul>
+            <li>配置分发：将配置下发到ztunnel和Waypoint代理</li>
+            <li>证书管理：生成和分发用于mTLS的证书</li>
+            <li>服务发现：跟踪服务网格中的服务</li>
+          </ul>
+          
+          <div class="svg-container">
+            <img src="../images/ambient-components.svg" alt="Ambient模式组件图" class="diagram">
+            <p class="diagram-title">图2: Ambient模式关键组件及其关系</p>
+          </div>
+        </div>
+
+        <div class="content-section" id="benefits">
+          <h2>Ambient模式优势</h2>
+          <p>Ambient模式相比传统Sidecar模式具有以下优势：</p>
+          
+          <h3>1. 降低资源消耗</h3>
+          <p>由于不需要为每个Pod部署Sidecar代理，Ambient模式显著减少了CPU和内存消耗，特别是在大规模部署中。</p>
+          
+          <h3>2. 简化部署和操作</h3>
+          <p>无需注入Sidecar，简化了应用部署流程，减少了与应用开发团队的协调需求。</p>
+          
+          <h3>3. 减少应用启动延迟</h3>
+          <p>没有Sidecar初始化过程，应用可以更快启动，提高了系统的弹性和扩展性。</p>
+          
+          <h3>4. 增强兼容性</h3>
+          <p>对应用透明，可以更容易地与现有应用集成，无需修改应用代码或配置。</p>
+          
+          <h3>5. 分层功能选择</h3>
+          <p>可以选择性地启用L7功能，只在需要的服务上部署Waypoint代理，优化资源使用。</p>
+        </div>
+
+        <div class="content-section" id="limitations">
+          <h2>限制与考量</h2>
+          <p>在考虑采用Ambient模式时，需要了解以下限制：</p>
+          
+          <h3>1. 功能成熟度</h3>
+          <p>作为较新的模式，某些高级功能可能尚未完全支持或稳定。</p>
+          
+          <h3>2. 性能开销</h3>
+          <p>虽然总体资源消耗降低，但L7处理需要额外的网络跳转，可能增加一定的延迟。</p>
+          
+          <h3>3. 操作复杂性</h3>
+          <p>管理分离的ztunnel和Waypoint代理可能引入新的操作复杂性。</p>
+          
+          <h3>4. 平台要求</h3>
+          <p>对Kubernetes版本和CNI插件有特定要求，可能需要更新基础设施。</p>
+        </div>
+
+        <div class="content-section" id="use-cases">
+          <h2>适用场景</h2>
+          <p>Ambient模式特别适合以下场景：</p>
+          
+          <h3>1. 资源受限环境</h3>
+          <p>在资源紧张的环境中，Ambient模式可以减少服务网格的资源开销。</p>
+          
+          <h3>2. 大规模部署</h3>
+          <p>对于有数百或数千个服务的大型集群，Ambient模式可以显著降低总体资源消耗。</p>
+          
+          <h3>3. 混合工作负载</h3>
+          <p>当集群中同时运行需要和不需要L7功能的服务时，Ambient模式的分层架构提供了灵活性。</p>
+          
+          <h3>4. 渐进式采用</h3>
+          <p>对于希望逐步采用服务网格的组织，Ambient模式提供了更平滑的过渡路径。</p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <p>Istio Ambient指南 &copy; 2025</p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- 延迟加载非关键JS -->
+  <script src="../js/main.js" defer></script>
+  
+  <!-- 骨架屏加载脚本 -->
+  <script>
+    // 标记页面正在加载
+    document.body.classList.add('loading');
+    
+    // 页面内容加载完成后隐藏骨架屏
+    window.addEventListener('load', function() {
+      // 给骨架屏一个短暂的延迟，确保CSS已完全应用
+      setTimeout(function() {
+        document.getElementById('skeleton-screen').classList.add('loaded');
+        document.body.classList.remove('loading');
+        document.body.classList.add('loaded');
+      }, 300);
+    });
+    
+    // 如果页面加载时间过长，也要隐藏骨架屏（最多等待3秒）
+    setTimeout(function() {
+      document.getElementById('skeleton-screen').classList.add('loaded');
+      document.body.classList.remove('loading');
+      document.body.classList.add('loaded');
+    }, 3000);
+  </script>
+  
+  <!-- 加载优化脚本 -->
+  <script>
+    // 用于处理CSS预加载的辅助函数
+    !function(n){"use strict";n.loadCSS||(n.loadCSS=function(){});var o=loadCSS.relpreload={};if(o.support=function(){var e;try{e=n.document.createElement("link").relList.supports("preload")}catch(t){e=!1}return function(){return e}}(),o.bindMediaToggle=function(t){var e=t.media||"all";function a(){t.addEventListener?t.removeEventListener("load",a):t.attachEvent&&t.detachEvent("onload",a),t.setAttribute("onload",null),t.media=e}t.addEventListener?t.addEventListener("load",a):t.attachEvent&&t.attachEvent("onload",a),setTimeout(function(){t.rel="stylesheet",t.media="only x"}),setTimeout(a,3e3)},o.poly=function(){if(!o.support())for(var t=n.document.getElementsByTagName("link"),e=0;e<t.length;e++){var a=t[e];"preload"!==a.rel||"style"!==a.getAttribute("as")||a.getAttribute("data-loadcss")||(a.setAttribute("data-loadcss",!0),o.bindMediaToggle(a))}},!o.support()){o.poly();var t=n.setInterval(o.poly,500);n.addEventListener?n.addEventListener("load",function(){o.poly(),n.clearInterval(t)}):n.attachEvent&&n.attachEvent("onload",function(){o.poly(),n.clearInterval(t)})}"undefined"!=typeof exports?exports.loadCSS=loadCSS:n.loadCSS=loadCSS}("undefined"!=typeof global?global:this);
+  </script>
+</body>
+</html>
