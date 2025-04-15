@@ -13,6 +13,11 @@ jobs:
     - uses: actions/checkout@v4
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag index.docker.io/jingslunt/istio-ambient-website:$(date +%s)
+    - name: Debug Secrets
+      run: |
+        echo "Username length: ${#DOCKERHUB_USERNAME}"
+      env:
+        DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   push_to_registry:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
